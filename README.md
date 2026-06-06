@@ -1,4 +1,4 @@
-# WIP (Belum selesai)
+# "Sudah cukup" -Tim Asesor
 # Prosperoudia
 
 Prototype Sistem E-Commerce Penjualan Obat Berbasis Web untuk studi kasus asesmen BNSP Web Developer di Klinik Makmur Jaya.

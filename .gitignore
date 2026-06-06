@@ -167,7 +167,6 @@ src/dashboard/public/reports/*
 src/dashboard/public/uploads/*
 !src/dashboard/public/reports/.gitkeep
 !src/dashboard/public/uploads/.gitkeep
-GITHUB_LINK.txt
 
 # Generated artifacts
 public/reports/*
