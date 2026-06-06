@@ -92,8 +92,66 @@ const prescriptionUpload = multer({
   )
 });
 
+const paymentProofUpload = multer({
+  storage: createStorage('payment-proofs'),
+  limits: {
+    fileSize: 5 * 1024 * 1024
+  },
+  fileFilter: createFileFilter(
+    ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+    'File bukti pembayaran harus berformat JPG, PNG, WEBP, atau PDF.'
+  )
+});
+
+const checkoutUpload = multer({
+  storage: multer.diskStorage({
+    destination(req, file, callback) {
+      try {
+        if (file.fieldname === 'prescription_image') {
+          return callback(null, ensureDirectory('prescriptions'));
+        }
+
+        if (file.fieldname === 'payment_proof') {
+          return callback(null, ensureDirectory('payment-proofs'));
+        }
+
+        return callback(new Error('Field upload checkout tidak dikenali.'));
+      } catch (error) {
+        return callback(error);
+      }
+    },
+    filename(req, file, callback) {
+      const filename = buildFileName(file);
+      req.uploadedFiles = req.uploadedFiles || {};
+      const relativePath = file.fieldname === 'payment_proof' ? 'payment-proofs' : 'prescriptions';
+      req.uploadedFiles[file.fieldname] = `/uploads/${relativePath}/${filename}`;
+      callback(null, filename);
+    }
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024
+  },
+  fileFilter(req, file, callback) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+    if (!allowedTypes.includes(file.mimetype)) {
+      const error = new Error(
+        file.fieldname === 'payment_proof'
+          ? 'File bukti pembayaran harus berformat JPG, PNG, WEBP, atau PDF.'
+          : 'File resep harus berformat JPG, PNG, WEBP, atau PDF.'
+      );
+      error.statusCode = 422;
+      return callback(error);
+    }
+
+    return callback(null, true);
+  }
+});
+
 module.exports = {
+  checkoutUpload,
   importFileUpload,
   medicineImageUpload,
+  paymentProofUpload,
   prescriptionUpload
 };

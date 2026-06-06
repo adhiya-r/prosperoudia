@@ -1,17 +1,4 @@
-<!DOCTYPE html>
-<html lang="id">
-  <head>
-    <%- include('../../../partials/head') %>
-  </head>
-  <body class="app-page">
-    <main class="dashboard-shell">
-      <%- include('../../../partials/app-header', {
-        eyebrow: 'Import',
-        heading: 'Import Obat',
-        subtitle: 'Unggah file CSV atau XLSX untuk membuat atau memperbarui katalog obat dan batch stok awal.',
-        showLogout: true
-      }) %>
-      <%- include('../../../partials/app-nav', { currentPath: '/system/imports/medicines' }) %>
+<%- include('../../../partials/backoffice-shell-start', { activePage: 'imports' }) %>
 
       <% if (flashMessage) { %>
         <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>" style="margin-top: 20px;"><%= flashMessage %></div>
@@ -76,6 +63,4 @@
           <% } %>
         </article>
       </section>
-    </main>
-  </body>
-</html>
+<%- include('../../../partials/backoffice-shell-end') %>

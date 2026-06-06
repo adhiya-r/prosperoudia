@@ -1,4 +1,6 @@
 const orderService = require('./orderService');
+const auditLogService = require('../audit-logs/auditLogService');
+const notificationService = require('../notifications/notificationService');
 
 function showCheckout(req, res) {
   const cart = req.session?.cart?.items ?? [];
@@ -19,8 +21,47 @@ async function submitCheckout(req, res) {
   try {
     const order = await orderService.createOrderFromCart(req.session, req.session.user, {
       ...req.body,
-      prescription_image_path: req.uploadedFiles?.prescription_image || req.body?.prescription_image_path || ''
+      prescription_image_path: req.uploadedFiles?.prescription_image || req.body?.prescription_image_path || '',
+      payment_proof_path: req.uploadedFiles?.payment_proof || req.body?.payment_proof_path || ''
     });
+    if (order?.id) {
+      await auditLogService.recordAuditLog(
+        auditLogService.buildAuditPayload(req.session.user, req, {
+          action: 'create_order',
+          entity_type: 'order',
+          entity_id: order.id,
+          new_value: {
+            order_number: order.order_number,
+            status: order.status
+          }
+        })
+      );
+      await notificationService.createNotificationsForRole('Admin', {
+        severity: order.status === 'pending_verification' ? 'warning' : 'info',
+        title: 'Order baru masuk',
+        message: `Order ${order.order_number} berhasil dibuat melalui storefront.`,
+        entity_type: 'order',
+        entity_id: order.id
+      });
+      if (order.payment_proof_path) {
+        await notificationService.createNotificationsForRole('Kasir', {
+          severity: 'info',
+          title: 'Bukti pembayaran tersedia',
+          message: `Order ${order.order_number} sudah dilengkapi bukti pembayaran oleh pelanggan.`,
+          entity_type: 'order',
+          entity_id: order.id
+        });
+      }
+      if (order.status === 'pending_verification') {
+        await notificationService.createNotificationsForRole('Apoteker', {
+          severity: 'warning',
+          title: 'Resep menunggu review',
+          message: `Order ${order.order_number} memerlukan verifikasi resep.`,
+          entity_type: 'order',
+          entity_id: order.id
+        });
+      }
+    }
     return res.redirect(`/orders/confirmation/${order.id}?type=success&message=Pesanan%20berhasil%20dibuat`);
   } catch (error) {
     if (error.statusCode === 422 && error.validation) {
@@ -29,7 +70,8 @@ async function submitCheckout(req, res) {
         req.session.user,
         {
           ...req.body,
-          prescription_image_path: req.uploadedFiles?.prescription_image || req.body?.prescription_image_path || ''
+          prescription_image_path: req.uploadedFiles?.prescription_image || req.body?.prescription_image_path || '',
+          payment_proof_path: req.uploadedFiles?.payment_proof || req.body?.payment_proof_path || ''
         },
         error.validation.errors,
         'Validasi checkout gagal.',

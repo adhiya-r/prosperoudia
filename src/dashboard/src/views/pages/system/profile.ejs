@@ -1,0 +1,156 @@
+<%- include('../../partials/head', { pageTitle }) %>
+
+<div class="app-shell">
+  <%- include('../../partials/sidebar', { activePage: 'profile' }) %>
+
+  <div class="main-column">
+    <%- include('../../partials/topbar', { pageTitle }) %>
+
+    <main class="page-content">
+      <section class="module-pagebar">
+        <div class="module-pagebar__copy">
+          <p class="eyebrow" data-i18n="profile.account">Account</p>
+          <p class="module-pagebar__text" data-i18n="profile.description">Kelola data akun pribadi dan password dari sini.</p>
+        </div>
+      </section>
+
+      <% if (flashMessage) { %>
+        <section class="panel">
+          <div class="alert alert--<%= flashType || 'info' %>">
+            <strong><%= flashMessage %></strong>
+          </div>
+        </section>
+      <% } %>
+
+      <section class="metric-grid">
+        <% profileSummary.forEach(function(item) { %>
+          <article class="metric-card">
+            <p class="metric-card__label"><%= item.label %></p>
+            <p class="metric-card__value"><%= item.value %></p>
+          </article>
+        <% }) %>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title" data-i18n="profile.edit_title">Edit Profile</h2>
+              <p class="panel__subtext" data-i18n="profile.edit_subtext">Ubah nama, username, dan email akun.</p>
+            </div>
+          </div>
+
+          <% if (accountErrors && Object.keys(accountErrors).length) { %>
+            <div class="alert alert--danger form-alert">
+              <strong data-i18n="module.validation_failed">Validasi gagal</strong>
+              <% if (accountErrorSummary && accountErrorSummary.length) { %>
+                <ul class="error-list">
+                  <% accountErrorSummary.forEach(function(error) { %>
+                    <li><%= error %></li>
+                  <% }) %>
+                </ul>
+              <% } %>
+            </div>
+          <% } %>
+
+          <form class="form form-page" action="<%= accountAction %>" method="post">
+            <% if (typeof csrfToken !== 'undefined' && csrfToken) { %>
+              <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+            <% } %>
+
+            <div class="form-grid">
+              <% accountFields.forEach(function(field) { %>
+                <div class="form-group">
+                  <label class="form-label" for="<%= field.name %>">
+                    <%= field.label %>
+                    <% if (field.required) { %><span aria-hidden="true">*</span><% } %>
+                  </label>
+                  <input
+                    class="form-input <%= field.error ? 'form-control--invalid' : '' %>"
+                    id="<%= field.name %>"
+                    name="<%= field.name %>"
+                    type="<%= field.type %>"
+                    value="<%= field.value || '' %>"
+                    <% if (field.name === 'full_name') { %>autocomplete="name"<% } %>
+                    <% if (field.name === 'username') { %>autocomplete="username"<% } %>
+                    <% if (field.name === 'email') { %>autocomplete="email"<% } %>
+                    aria-invalid="<%= field.error ? 'true' : 'false' %>"
+                    <%= field.required ? 'required' : '' %>>
+                  <% if (field.error) { %>
+                    <p class="field-error"><%= field.error %></p>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+
+            <div class="module-toolbar">
+              <div class="module-toolbar__actions">
+                <button class="btn btn-primary" type="submit" data-i18n="profile.update_button">Update Profile</button>
+              </div>
+            </div>
+          </form>
+        </article>
+
+        <article class="panel">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title" data-i18n="profile.password_title">Change Password</h2>
+              <p class="panel__subtext" data-i18n="profile.password_subtext">Wajib memasukkan password saat ini untuk mengganti password baru.</p>
+            </div>
+          </div>
+
+          <% if (passwordErrors && Object.keys(passwordErrors).length) { %>
+            <div class="alert alert--danger form-alert">
+              <strong data-i18n="module.validation_failed">Validasi gagal</strong>
+              <% if (passwordErrorSummary && passwordErrorSummary.length) { %>
+                <ul class="error-list">
+                  <% passwordErrorSummary.forEach(function(error) { %>
+                    <li><%= error %></li>
+                  <% }) %>
+                </ul>
+              <% } %>
+            </div>
+          <% } %>
+
+          <form class="form form-page" action="<%= passwordAction %>" method="post">
+            <% if (typeof csrfToken !== 'undefined' && csrfToken) { %>
+              <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+            <% } %>
+
+            <div class="form-grid">
+              <% passwordFields.forEach(function(field) { %>
+                <div class="form-group">
+                  <label class="form-label" for="<%= field.name %>">
+                    <%= field.label %>
+                    <% if (field.required) { %><span aria-hidden="true">*</span><% } %>
+                  </label>
+                  <input
+                    class="form-input <%= field.error ? 'form-control--invalid' : '' %>"
+                    id="<%= field.name %>"
+                    name="<%= field.name %>"
+                    type="<%= field.type %>"
+                    value=""
+                    <% if (field.name === 'current_password') { %>autocomplete="current-password"<% } %>
+                    <% if (field.name === 'new_password' || field.name === 'password_confirmation') { %>autocomplete="new-password"<% } %>
+                    aria-invalid="<%= field.error ? 'true' : 'false' %>"
+                    <%= field.required ? 'required' : '' %>>
+                  <% if (field.error) { %>
+                    <p class="field-error"><%= field.error %></p>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+
+            <div class="module-toolbar">
+              <div class="module-toolbar__actions">
+                <button class="btn btn-primary" type="submit" data-i18n="profile.password_button">Change Password</button>
+              </div>
+            </div>
+          </form>
+        </article>
+      </section>
+    </main>
+  </div>
+</div>
+
+<%- include('../../partials/footer') %>

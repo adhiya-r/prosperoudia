@@ -1,0 +1,59 @@
+<%# Partial: profile-sidebar.ejs
+    Variabel yang harus tersedia dari res.locals / template:
+    - currentUser (termasuk .avatar_url, .full_name)
+    - currentRole
+    - csrfToken
+    - activePage: 'edit' | 'orders' | 'prescriptions'
+%>
+<%
+  const resolvedProfileActions = typeof profileActions !== 'undefined'
+    ? profileActions
+    : {
+        avatar: '/profil/avatar',
+        deleteAvatar: '/profil/avatar/hapus'
+      };
+%>
+<aside class="profile-sidebar">
+  <div class="profile-sidebar__avatar">
+    <div class="avatar-upload-wrapper">
+      <% if (currentUser.avatar_url) { %>
+        <img class="profile-avatar profile-avatar--lg profile-avatar--photo"
+             src="<%= currentUser.avatar_url %>"
+             alt="Foto profil <%= currentUser.full_name %>" />
+      <% } else { %>
+        <span class="profile-avatar profile-avatar--lg"><%= currentUser.full_name.charAt(0).toUpperCase() %></span>
+      <% } %>
+      <label for="avatar-input" class="avatar-upload-btn" title="Ganti foto profil">
+        <i class="fa-solid fa-camera"></i>
+      </label>
+      <form action="<%= resolvedProfileActions.avatar %>?csrfToken=<%= csrfToken %>" method="post" enctype="multipart/form-data" id="avatar-form">
+        <input type="file" id="avatar-input" name="avatar"
+               accept="image/jpeg,image/png,image/webp"
+               style="display:none"
+               onchange="document.getElementById('avatar-form').submit()">
+      </form>
+    </div>
+    <div>
+      <strong class="profile-sidebar__name"><%= currentUser.full_name %></strong>
+      <small class="profile-sidebar__role"><%= currentRole %></small>
+      <% if (currentUser.avatar_url) { %>
+        <form action="<%= resolvedProfileActions.deleteAvatar %>?csrfToken=<%= csrfToken %>" method="post" style="margin-top:4px">
+          <button type="submit" class="avatar-delete-btn" title="Hapus foto profil">
+            <i class="fa-solid fa-trash-can"></i> Hapus foto
+          </button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+  <nav class="profile-sidebar__nav">
+    <a href="/profil/edit" class="<%= activePage === 'edit' ? 'active' : '' %>">
+      <i class="fa-solid fa-user-pen"></i> Edit Profil
+    </a>
+    <a href="/orders" class="<%= activePage === 'orders' ? 'active' : '' %>">
+      <i class="fa-solid fa-bag-shopping"></i> Pesanan Saya
+    </a>
+    <a href="/prescriptions" class="<%= activePage === 'prescriptions' ? 'active' : '' %>">
+      <i class="fa-solid fa-file-prescription"></i> Resep Saya
+    </a>
+  </nav>
+</aside>

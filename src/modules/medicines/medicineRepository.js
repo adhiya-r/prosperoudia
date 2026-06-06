@@ -186,11 +186,83 @@ async function createMedicine(payload) {
   return record ?? null;
 }
 
+async function updateById(id, payload) {
+  const [record] = await database('medicines')
+    .where('id', id)
+    .update({
+      sku: payload.sku,
+      name: payload.name,
+      brand_name: payload.brand_name,
+      category_id: payload.category_id,
+      supplier_id: payload.supplier_id,
+      description: payload.description,
+      composition: payload.composition,
+      dosage: payload.dosage,
+      dosage_form: payload.dosage_form,
+      strength: payload.strength,
+      side_effects: payload.side_effects,
+      unit_price: payload.unit_price,
+      minimum_stock_threshold: payload.minimum_stock_threshold,
+      image_path: payload.image_path,
+      requires_prescription: payload.requires_prescription,
+      is_active: payload.is_active,
+      updated_at: database.fn.now()
+    })
+    .returning(['id']);
+
+  return record ?? null;
+}
+
+async function deactivateById(id) {
+  return database('medicines')
+    .where('id', id)
+    .update({
+      is_active: false,
+      updated_at: database.fn.now()
+    });
+}
+
+async function activateById(id) {
+  return database('medicines')
+    .where('id', id)
+    .update({
+      is_active: true,
+      updated_at: database.fn.now()
+    });
+}
+
+async function countUsage(id) {
+  const [orderItems, inventoryBatches, prescriptionItems, stockMovements] = await Promise.all([
+    database('order_items').where('medicine_id', id).count('* as count').first(),
+    database('inventory_batches').where('medicine_id', id).count('* as count').first(),
+    database('prescription_items').where('medicine_id', id).count('* as count').first(),
+    database('stock_movements').where('medicine_id', id).count('* as count').first()
+  ]);
+
+  return {
+    orderItems: Number(orderItems?.count ?? 0),
+    inventoryBatches: Number(inventoryBatches?.count ?? 0),
+    prescriptionItems: Number(prescriptionItems?.count ?? 0),
+    stockMovements: Number(stockMovements?.count ?? 0)
+  };
+}
+
+async function deleteById(id) {
+  return database('medicines')
+    .where('id', id)
+    .del();
+}
+
 module.exports = {
   listMedicines,
   listPublicMedicines,
   listSearchSuggestions,
   findBySku,
   findById,
-  createMedicine
+  createMedicine,
+  updateById,
+  deactivateById,
+  activateById,
+  countUsage,
+  deleteById
 };

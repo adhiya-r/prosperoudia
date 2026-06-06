@@ -210,7 +210,52 @@ test('POST /checkout requires prescription fields when cart contains prescriptio
 
     assert.equal(response.status, 422);
     assert.match(response.text, /Nama dokter wajib diisi/i);
-    assert.match(response.text, /Referensi resep wajib diisi/i);
+    assert.match(response.text, /Upload file resep atau isi link resep yang valid/i);
+  } finally {
+    medicineService.getMedicineDetail = originalGetMedicineDetail;
+  }
+});
+
+test('POST /checkout rejects invalid prescription file reference when prescription item requires review', async () => {
+  const originalGetMedicineDetail = medicineService.getMedicineDetail;
+  medicineService.getMedicineDetail = async () => ({
+    id: 5,
+    sku: 'OMZ-20',
+    name: 'Omeprazole 20 mg',
+    category_name: 'Pencernaan',
+    unit_price: 32000,
+    price_label: 'Rp32.000',
+    requires_prescription: true
+  });
+
+  const agent = supertest.agent(app);
+
+  try {
+    await loginAsCustomer(agent);
+
+    const addToken = await getCsrfToken(agent, '/');
+    await agent
+      .post('/cart/items')
+      .type('form')
+      .send({ csrfToken: addToken, medicine_id: '5', quantity: '1', redirect_to: '/cart' });
+
+    const csrfToken = await getCsrfToken(agent, '/checkout');
+    const response = await agent.post('/checkout').type('form').send({
+      csrfToken,
+      full_name: 'Pelanggan Demo',
+      email: 'pelanggan@prosperoudia.local',
+      phone: '081100000004',
+      address: 'Jl. Demo Pelanggan No. 10, Jakarta',
+      payment_method: 'qris',
+      fulfillment_method: 'pickup',
+      notes: 'Mohon diproses',
+      doctor_name: 'dr. Demo',
+      prescription_number: 'RX-001',
+      prescription_image_path: 'alskdjflaksfjdl'
+    });
+
+    assert.equal(response.status, 422);
+    assert.match(response.text, /Upload file resep atau isi link resep yang valid/i);
   } finally {
     medicineService.getMedicineDetail = originalGetMedicineDetail;
   }

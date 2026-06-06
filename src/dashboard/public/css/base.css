@@ -1,0 +1,66 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-base);
+  background:
+    radial-gradient(circle at top left, rgba(31, 111, 235, 0.08), transparent 28%),
+    radial-gradient(circle at top right, rgba(14, 159, 142, 0.08), transparent 22%),
+    var(--color-background);
+  color: var(--color-neutral-900);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+html[data-theme='dark'] body {
+  background:
+    radial-gradient(circle at top left, rgba(83, 116, 199, 0.16), transparent 24%),
+    radial-gradient(circle at top right, rgba(255, 184, 77, 0.08), transparent 22%),
+    linear-gradient(180deg, #1a202b 0%, #11161d 100%);
+  color: #e2e8f0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+body.app-body {
+  overflow-x: hidden;
+}
+
+.site-footer {
+  padding: var(--space-5) var(--space-6);
+  text-align: center;
+  color: var(--color-neutral-500);
+}
+
+.site-footer p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+html[data-theme='dark'] .site-footer {
+  background: transparent;
+  color: rgba(226, 232, 240, 0.72);
+}

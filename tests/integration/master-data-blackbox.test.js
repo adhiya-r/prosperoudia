@@ -6,6 +6,7 @@ const app = require('../../src/app');
 const authService = require('../../src/modules/auth/authService');
 const categoryService = require('../../src/modules/categories/categoryService');
 const supplierService = require('../../src/modules/suppliers/supplierService');
+const userManagementService = require('../../src/modules/users/userManagementService');
 const { getCsrfToken } = require('../helpers/csrf');
 
 async function loginAsAdmin(agent) {
@@ -165,5 +166,106 @@ test('POST /suppliers redirects on successful create', async () => {
     assert.match(response.headers.location, /\/suppliers\?type=success/);
   } finally {
     supplierService.createSupplier = originalCreateSupplier;
+  }
+});
+
+test('GET /system/users renders account management page for admin without warehouse info', async () => {
+  const originalListUserAccounts = userManagementService.listUserAccounts;
+  const originalListRoleOptions = userManagementService.listRoleOptions;
+  userManagementService.listUserAccounts = async () => ([
+    {
+      id: 1,
+      full_name: 'Admin Prosperoudia',
+      username: 'admin',
+      email: 'admin@prosperoudia.local',
+      phone: '081100000001',
+      role_id: 1,
+      role_label: 'Admin',
+      account_group_label: 'Internal',
+      is_active: true,
+      status_label: 'Aktif',
+      last_login_label: '6 Jun 2026 10.00',
+      created_at_label: '5 Jun 2026 09.00',
+      created_at: '2026-06-05T09:00:00.000Z',
+      last_login_at: '2026-06-06T10:00:00.000Z'
+    }
+  ]);
+  userManagementService.listRoleOptions = async () => ([
+    { value: '1', label: 'Admin' },
+    { value: '2', label: 'Apoteker' },
+    { value: '3', label: 'Kasir' },
+    { value: '4', label: 'Pelanggan' }
+  ]);
+
+  const agent = supertest.agent(app);
+
+  try {
+    await loginAsAdmin(agent);
+    const response = await agent.get('/system/users');
+
+    assert.equal(response.status, 200);
+    assert.match(response.text, /Kelola akun aplikasi yang aktif dipakai pada operasional apotek/i);
+    assert.match(response.text, /Kelola Akun/);
+    assert.doesNotMatch(response.text, /warehouse/i);
+  } finally {
+    userManagementService.listUserAccounts = originalListUserAccounts;
+    userManagementService.listRoleOptions = originalListRoleOptions;
+  }
+});
+
+test('POST /system/users/:id redirects on successful account update', async () => {
+  const originalUpdateUserAccount = userManagementService.updateUserAccount;
+  userManagementService.updateUserAccount = async () => ({
+    user: {
+      id: 1,
+      full_name: 'Admin Baru',
+      username: 'adminbaru',
+      email: 'adminbaru@prosperoudia.local',
+      phone: '081100000099',
+      is_active: true
+    },
+    previous: {
+      full_name: 'Admin Prosperoudia',
+      username: 'admin',
+      email: 'admin@prosperoudia.local'
+    },
+    selectedRole: {
+      id: 1,
+      name: 'Admin',
+      display_name: 'Admin'
+    },
+    updated: {
+      full_name: 'Admin Baru',
+      username: 'adminbaru',
+      email: 'adminbaru@prosperoudia.local',
+      phone: '081100000099',
+      role_id: 1,
+      is_active: true,
+      role_label: 'Admin'
+    }
+  });
+
+  const agent = supertest.agent(app);
+
+  try {
+    await loginAsAdmin(agent);
+    const csrfToken = await getCsrfToken(agent, '/system/users');
+    const response = await agent
+      .post('/system/users/1')
+      .type('form')
+      .send({
+        csrfToken,
+        full_name: 'Admin Baru',
+        username: 'adminbaru',
+        email: 'adminbaru@prosperoudia.local',
+        phone: '081100000099',
+        role_id: '1',
+        is_active: 'true'
+      });
+
+    assert.equal(response.status, 302);
+    assert.match(response.headers.location, /\/system\/users\?message=Data\+akun\+berhasil\+diperbarui&type=success/);
+  } finally {
+    userManagementService.updateUserAccount = originalUpdateUserAccount;
   }
 });

@@ -1,0 +1,218 @@
+<%
+  const dashboardHead = `
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    >
+  `;
+%>
+<%- include('../partials/head', { pageTitle, extraHead: dashboardHead }) %>
+
+<div class="app-shell">
+  <%- include('../partials/sidebar', { activePage: 'dashboard' }) %>
+
+  <div class="main-column">
+    <%- include('../partials/topbar', { pageTitle }) %>
+
+    <main class="page-content" data-dashboard-root data-dashboard-endpoint="/dashboard/data" data-dashboard-events-endpoint="/dashboard/events">
+      <section class="metric-grid" data-dashboard-metrics>
+        <% metrics.forEach(function(metric, index) { %>
+          <article class="metric-card">
+            <p class="metric-card__label"><%= metric.label %></p>
+            <p class="metric-card__value" data-metric-index="<%= index %>"><%= metric.value %></p>
+          </article>
+        <% }) %>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel chart-card">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title" data-i18n="dashboard.movement_trend">Tren Pergerakan</h2>
+              <p class="panel__subtext" data-i18n="dashboard.movement_subtext">Perbandingan stock masuk dan keluar selama 7 hari terakhir.</p>
+            </div>
+            <span class="badge badge--info" data-i18n="dashboard.realtime_badge">Realtime + fallback 30d</span>
+          </div>
+          <div class="dashboard-chart-shell">
+            <canvas class="dashboard-chart-canvas" data-dashboard-trend-chart aria-label="Movement trend chart"></canvas>
+          </div>
+          <div class="dashboard-chart-meta">
+            <div class="dashboard-chip">
+              <span class="dashboard-chip__dot dashboard-chip__dot--in"></span>
+              <span data-i18n="dashboard.total_stock_in">Total Stock In</span>
+              <strong data-dashboard-stock-in-total><%= (dashboardState.movementTrend.stockIn || []).reduce(function(total, item) { return total + item; }, 0) %></strong>
+            </div>
+            <div class="dashboard-chip">
+              <span class="dashboard-chip__dot dashboard-chip__dot--out"></span>
+              <span data-i18n="dashboard.total_stock_out">Total Stock Out</span>
+              <strong data-dashboard-stock-out-total><%= (dashboardState.movementTrend.stockOut || []).reduce(function(total, item) { return total + item; }, 0) %></strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel map-card">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title" data-i18n="dashboard.warehouse_network">Jaringan Warehouse</h2>
+              <p class="panel__subtext" data-i18n="dashboard.warehouse_subtext">Lokasi gudang aktif untuk pantauan distribusi nasional.</p>
+            </div>
+            <span class="badge badge--neutral" data-dashboard-warehouse-count data-i18n-template="dashboard.location_count" data-i18n-count="<%= dashboardState.warehouseLocations.length %>"><%= dashboardState.warehouseLocations.length %> lokasi</span>
+          </div>
+          <div class="dashboard-map" data-dashboard-map aria-label="Warehouse map"></div>
+          <div class="dashboard-map-list" data-dashboard-map-list>
+            <% dashboardState.warehouseLocations.forEach(function(warehouse) { %>
+              <div class="dashboard-map-list__item">
+                <strong><%= warehouse.city %></strong>
+                <span><%= warehouse.name %></span>
+              </div>
+            <% }) %>
+          </div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title" data-i18n="dashboard.quick_snapshot">Snapshot Cepat</h2>
+              <p class="panel__subtext" data-i18n="dashboard.snapshot_subtext">Panel ini ikut diperbarui otomatis saat data inventory bergerak.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-snapshot">
+            <div class="snapshot-row">
+              <p class="snapshot-row__label" data-i18n="dashboard.total_products">Total produk terdaftar</p>
+              <p class="snapshot-row__value" data-snapshot="totalProducts"><%= metrics[0] ? metrics[0].value : '0' %></p>
+            </div>
+            <div class="snapshot-row">
+              <p class="snapshot-row__label" data-i18n="dashboard.active_warehouses">Warehouse aktif</p>
+              <p class="snapshot-row__value" data-snapshot="totalWarehouses"><%= metrics[1] ? metrics[1].value : '0' %></p>
+            </div>
+            <div class="snapshot-row">
+              <p class="snapshot-row__label" data-i18n="dashboard.inventory_value">Nilai inventory</p>
+              <p class="snapshot-row__value" data-snapshot="inventoryValue"><%= metrics[2] ? metrics[2].value : 'Rp 0' %></p>
+            </div>
+            <div class="snapshot-row">
+              <p class="snapshot-row__label" data-i18n="dashboard.low_stock_products">Produk low stock</p>
+              <p class="snapshot-row__value" data-snapshot="lowStockItems"><%= metrics[3] ? metrics[3].value : '0' %></p>
+            </div>
+            <div class="snapshot-row">
+              <p class="snapshot-row__label" data-i18n="dashboard.pending_transfers">Pending transfers</p>
+              <p class="snapshot-row__value" data-snapshot="pendingTransfers"><%= pendingTransfersCount %></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title" data-i18n="dashboard.low_stock_title">Pantauan Low Stock</h2>
+              <p class="panel__subtext" data-i18n="dashboard.low_stock_subtext">Produk yang perlu perhatian segera.</p>
+            </div>
+            <span class="badge badge--warning" data-i18n="dashboard.watch_badge">Pantau</span>
+          </div>
+
+          <div class="dashboard-table" data-dashboard-low-stock-list>
+            <% if (lowStockProducts && lowStockProducts.length) { %>
+              <% lowStockProducts.forEach(function(product) { %>
+                <div class="dashboard-table__row">
+                  <div>
+                    <p class="dashboard-table__title"><%= product.name %></p>
+                    <p class="dashboard-table__subtitle"><%= product.sku %> • <%= product.category_name || '-' %></p>
+                  </div>
+                  <div class="dashboard-table__meta">
+                    <span class="badge badge--warning"><%= product.current_quantity %> / <%= product.threshold %></span>
+                  </div>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <div class="dashboard-empty" data-dashboard-low-stock-empty>
+                <p class="dashboard-empty__title" data-i18n="dashboard.empty_low_stock_title">Belum ada produk low stock</p>
+                <p class="dashboard-empty__note" data-i18n="dashboard.empty_low_stock_note">Semua produk masih berada di atas batas minimum saat ini.</p>
+              </div>
+            <% } %>
+          </div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title" data-i18n="dashboard.latest_movements">Pergerakan Stok Terbaru</h2>
+              <p class="panel__subtext" data-i18n="dashboard.latest_movements_subtext">Feed transaksi terakhir yang tercatat di sistem.</p>
+            </div>
+            <span class="badge badge--info" data-i18n="dashboard.latest_badge">Terbaru</span>
+          </div>
+
+          <div class="dashboard-table dashboard-table--latest" data-dashboard-transactions-list>
+            <% if (recentTransactions && recentTransactions.length) { %>
+              <% recentTransactions.forEach(function(transaction) { %>
+                <div class="dashboard-table__row">
+                  <div>
+                    <p class="dashboard-table__title"><%= transaction.product_name %></p>
+                    <p class="dashboard-table__subtitle"><%= transaction.sku %> • <%= transaction.warehouse_name %> • <%= transaction.transaction_type %></p>
+                  </div>
+                  <div class="dashboard-table__meta">
+                    <p class="dashboard-table__value"><%= transaction.quantity %></p>
+                    <p class="dashboard-table__subtitle" data-i18n-template="dashboard.by_actor" data-i18n-actor="<%= transaction.performed_by_name || 'System' %>">by <%= transaction.performed_by_name || 'System' %></p>
+                  </div>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <div class="dashboard-empty" data-dashboard-transactions-empty>
+                <p class="dashboard-empty__title" data-i18n="dashboard.empty_transactions_title">Belum ada transaksi terbaru</p>
+                <p class="dashboard-empty__note" data-i18n="dashboard.empty_transactions_note">Setelah stock movement berjalan, feed ini akan terisi otomatis.</p>
+              </div>
+            <% } %>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title" data-i18n="dashboard.latest_notifications">Notifikasi Terbaru</h2>
+              <p class="panel__subtext" data-i18n="dashboard.latest_notifications_subtext">Alert low stock dan notifikasi operasional terbaru.</p>
+            </div>
+            <a class="badge badge--neutral dashboard-link-badge" href="/notifications" data-i18n="dashboard.view_all">Lihat semua</a>
+          </div>
+
+          <div class="dashboard-table" data-dashboard-notifications-list>
+            <% if (recentNotifications && recentNotifications.length) { %>
+              <% recentNotifications.forEach(function(notification) { %>
+                <div class="dashboard-table__row">
+                  <div>
+                    <p class="dashboard-table__title"><%= notification.title %></p>
+                    <p class="dashboard-table__subtitle"><%= notification.message %></p>
+                  </div>
+                  <div class="dashboard-table__meta">
+                    <span class="badge <%= notification.severity === 'critical' ? 'badge--danger' : notification.severity === 'warning' ? 'badge--warning' : 'badge--info' %>"><%= notification.severity %></span>
+                    <p class="dashboard-table__subtitle"><%= notification.role_target || notification.user_full_name || '-' %></p>
+                  </div>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <div class="dashboard-empty" data-dashboard-notifications-empty>
+                <p class="dashboard-empty__title" data-i18n="dashboard.empty_notifications_title">Belum ada notifikasi</p>
+                <p class="dashboard-empty__note" data-i18n="dashboard.empty_notifications_note">Alert akan muncul otomatis saat kondisi penting terdeteksi.</p>
+              </div>
+            <% } %>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script id="dashboard-payload" type="application/json"><%- JSON.stringify(dashboardState).replace(/</g, '\\u003c') %></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+  defer></script>
+<script src="/dashboard-assets/js/dashboard.js" defer></script>
+
+<%- include('../partials/footer') %>

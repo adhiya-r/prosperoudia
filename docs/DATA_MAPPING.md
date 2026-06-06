@@ -146,12 +146,35 @@ Catatan:
 - field yang penting untuk login pelanggan tidak sebaiknya diisi default palsu
 - lebih baik ditandai invalid lalu dibersihkan
 
+## 6. Transaksi, Resep, dan Bukti Pembayaran
+
+Data transaksi lama biasanya tidak lengkap untuk e-commerce. Untuk prototype, transaksi baru dibuat dari checkout sistem. Jika histori transaksi manual perlu dimigrasikan, gunakan mapping berikut sebagai acuan awal.
+
+Tujuan baru:
+
+- tabel `orders`
+- tabel `order_items`
+- tabel `prescriptions`
+
+| Data Lama | Field Baru | Wajib | Catatan |
+|---|---|---|---|
+| Nomor transaksi | `orders.order_number` | Ya | Harus unik; jika kosong dapat digenerate saat cleansing |
+| Pelanggan | `orders.customer_id` | Ya | Mapping dari email/nomor HP pelanggan |
+| Metode pembayaran | `orders.payment_method` | Tidak | Contoh: transfer bank, QRIS, bayar counter |
+| Status pembayaran | `orders.payment_status` | Ya | Mapping ke `unpaid`, `pending`, `paid`, atau `failed` |
+| Bukti pembayaran | `orders.payment_proof_path` | Tidak | Hanya path `/uploads/...` atau URL `http/https` yang dianggap valid |
+| Waktu upload bukti | `orders.payment_proof_uploaded_at` | Tidak | Diisi jika bukti pembayaran tersedia |
+| File resep | `prescriptions.image_path` | Wajib untuk obat resep | Hanya path `/uploads/...` atau URL `http/https` yang dianggap valid |
+| Nama dokter | `prescriptions.doctor_name` | Wajib untuk obat resep | Dipakai apoteker saat review |
+| Nomor resep | `prescriptions.prescription_number` | Tidak | Opsional |
+
 ## Aturan Mapping Penting
 
 - mapping kategori dan supplier tidak boleh mengandalkan nama bebas bila ada kode unik
 - semua harga diubah ke numerik tanpa simbol `Rp`
 - semua quantity diubah ke integer/decimal sesuai kebutuhan schema
 - status `Ya/Tidak` diubah ke boolean
+- field file upload tidak boleh berisi teks bebas karena UI hanya membuka path file yang valid
 
 ## Catatan
 

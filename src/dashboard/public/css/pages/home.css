@@ -1,0 +1,47 @@
+.panel--hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr);
+  gap: var(--space-6);
+  background:
+    linear-gradient(135deg, rgba(31, 111, 235, 0.08), rgba(14, 159, 142, 0.06)),
+    var(--color-surface);
+}
+
+.hero-copy h2 {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-2xl);
+  line-height: 1.2;
+}
+
+.hero-text {
+  margin: 0;
+  max-width: 62ch;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.hero-aside {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (max-width: 1200px) {
+  .panel--hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+  }
+}

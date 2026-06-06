@@ -1,24 +1,31 @@
 const express = require('express');
+const donorBackofficeRoutes = require('../dashboard/src/routes');
 const authRoutes = require('../modules/auth/authRoutes');
 const categoryRoutes = require('../modules/categories/categoryRoutes');
-const dashboardController = require('../modules/dashboard/dashboardController');
 const homeRoutes = require('../modules/home/homeRoutes');
 const importRoutes = require('../modules/imports/importRoutes');
 const medicineRoutes = require('../modules/medicines/medicineRoutes');
 const monitoringRoutes = require('../modules/monitoring/monitoringRoutes');
+const notificationRoutes = require('../modules/notifications/notificationRoutes');
 const cartRoutes = require('../modules/orders/cartRoutes');
+const customerOrderRoutes = require('../modules/orders/customerOrderRoutes');
 const orderManagementRoutes = require('../modules/orders/orderManagementRoutes');
 const prescriptionRoutes = require('../modules/prescriptions/prescriptionRoutes');
 const reportRoutes = require('../modules/reports/reportRoutes');
 const supplierRoutes = require('../modules/suppliers/supplierRoutes');
+const userManagementController = require('../modules/users/userManagementController');
 const userManagementRoutes = require('../modules/users/userManagementRoutes');
+const profileRoutes = require('../modules/profile/profileRoutes');
 const { requireAuth } = require('../shared/middlewares/authMiddleware');
-
+const { requireRole } = require('../shared/middlewares/roleMiddleware');
 const router = express.Router();
 
 router.use('/', homeRoutes);
 router.use('/', authRoutes);
+router.use('/', profileRoutes);
+router.use('/', notificationRoutes);
 router.use('/', cartRoutes);
+router.use('/', customerOrderRoutes);
 router.use('/system/imports', importRoutes);
 router.use('/system/reports', reportRoutes);
 router.use('/system', monitoringRoutes);
@@ -28,7 +35,9 @@ router.use('/prescriptions', prescriptionRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/medicines', medicineRoutes);
 router.use('/suppliers', supplierRoutes);
-
-router.get('/dashboard', requireAuth, dashboardController.showDashboard);
+router.get('/users', requireAuth, requireRole('Admin'), (req, res) => res.redirect('/system/users'));
+router.get('/users/new', requireAuth, requireRole('Admin'), (req, res) => res.redirect('/system/users'));
+router.post('/users/:id', requireAuth, requireRole('Admin'), userManagementController.updateUserAccount);
+router.use('/', donorBackofficeRoutes);
 
 module.exports = router;

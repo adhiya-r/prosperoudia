@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Prosperoudia backoffice untuk operasional apotek dan e-commerce obat">
+  <% const resolvedAppName = typeof appName !== 'undefined' && appName ? appName : 'Prosperoudia'; %>
+  <% const resolvedAssetVersion = typeof assetVersion !== 'undefined' ? assetVersion : Date.now(); %>
+  <title><%= pageTitle ? `${pageTitle} | ${resolvedAppName}` : resolvedAppName %></title>
+  <link rel="stylesheet" href="/dashboard-assets/css/main.css?v=<%= resolvedAssetVersion %>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <% if (typeof extraHead !== 'undefined' && extraHead) { %>
+    <%- extraHead %>
+  <% } %>
+</head>
+<body class="app-body">

@@ -1,0 +1,114 @@
+<%- include('../../partials/backoffice-shell-start', { activePage: 'profile' }) %>
+
+<section class="module-pagebar">
+  <div class="module-pagebar__copy">
+    <p class="eyebrow">Akun Internal</p>
+    <p class="module-pagebar__text">Kelola identitas, keamanan akun, dan foto profil Anda tanpa memerlukan bantuan Admin lain.</p>
+  </div>
+</section>
+
+<% if (flashMessage) { %>
+  <div class="alert alert--<%= flashType === 'success' ? 'success' : 'danger' %>">
+    <strong><%= flashMessage %></strong>
+  </div>
+<% } %>
+
+<section class="backoffice-profile-hero">
+  <div class="backoffice-profile-hero__identity">
+    <% if (user.avatar_url) { %>
+      <img class="backoffice-profile-hero__avatar" src="<%= user.avatar_url %>" alt="Foto profil <%= user.full_name %>" />
+    <% } else { %>
+      <span class="backoffice-profile-hero__avatar backoffice-profile-hero__avatar--initial"><%= user.full_name.charAt(0).toUpperCase() %></span>
+    <% } %>
+    <div>
+      <p class="eyebrow">Profil Saya</p>
+      <h2><%= user.full_name %></h2>
+      <p><%= currentRole %> · <%= user.email %></p>
+    </div>
+  </div>
+  <div class="backoffice-profile-hero__actions">
+    <form action="<%= profileActions.avatar %>?csrfToken=<%= csrfToken %>" method="post" enctype="multipart/form-data">
+      <label class="btn btn-primary backoffice-profile-upload">
+        <i class="fa-solid fa-camera"></i>
+        Ganti Foto
+        <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" onchange="this.form.submit()" />
+      </label>
+    </form>
+    <% if (user.avatar_url) { %>
+      <form action="<%= profileActions.deleteAvatar %>?csrfToken=<%= csrfToken %>" method="post">
+        <button class="btn btn-secondary" type="submit"><i class="fa-solid fa-trash-can"></i> Hapus Foto</button>
+      </form>
+    <% } %>
+  </div>
+</section>
+
+<div class="backoffice-profile-grid">
+  <section class="profile-card">
+    <div class="profile-card__header">
+      <h1><i class="fa-solid fa-user-pen"></i> Informasi Akun</h1>
+      <p>Perubahan nama, username, email, dan nomor HP langsung digunakan pada session aktif.</p>
+    </div>
+    <form action="<%= profileActions.account %>" method="post" class="profile-form" novalidate>
+      <%- include('../../partials/csrf-field') %>
+      <div class="form-row">
+        <div class="form-group <%= formErrors.full_name ? 'form-group--error' : '' %>">
+          <label for="full_name">Nama Lengkap <span class="required">*</span></label>
+          <input type="text" id="full_name" name="full_name" value="<%= formValues.full_name %>" autocomplete="name" required />
+          <% if (formErrors.full_name) { %><span class="form-error"><%= formErrors.full_name %></span><% } %>
+        </div>
+        <div class="form-group <%= formErrors.username ? 'form-group--error' : '' %>">
+          <label for="username">Username <span class="required">*</span></label>
+          <input type="text" id="username" name="username" value="<%= formValues.username %>" autocomplete="username" required />
+          <% if (formErrors.username) { %><span class="form-error"><%= formErrors.username %></span><% } %>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group <%= formErrors.email ? 'form-group--error' : '' %>">
+          <label for="email">Email <span class="required">*</span></label>
+          <input type="email" id="email" name="email" value="<%= formValues.email %>" autocomplete="email" required />
+          <% if (formErrors.email) { %><span class="form-error"><%= formErrors.email %></span><% } %>
+        </div>
+        <div class="form-group <%= formErrors.phone ? 'form-group--error' : '' %>">
+          <label for="phone">Nomor HP</label>
+          <input type="tel" id="phone" name="phone" value="<%= formValues.phone %>" autocomplete="tel" />
+          <% if (formErrors.phone) { %><span class="form-error"><%= formErrors.phone %></span><% } %>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="button-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="profile-card profile-card--danger-zone">
+    <div class="profile-card__header">
+      <h2><i class="fa-solid fa-shield-halved"></i> Keamanan Akun</h2>
+      <p>Password saat ini wajib diverifikasi sebelum password baru disimpan.</p>
+    </div>
+    <form action="<%= profileActions.password %>" method="post" class="profile-form" novalidate>
+      <%- include('../../partials/csrf-field') %>
+      <div class="form-group <%= passwordErrors.current_password ? 'form-group--error' : '' %>">
+        <label for="current_password">Password Saat Ini <span class="required">*</span></label>
+        <input type="password" id="current_password" name="current_password" autocomplete="current-password" required />
+        <% if (passwordErrors.current_password) { %><span class="form-error"><%= passwordErrors.current_password %></span><% } %>
+      </div>
+      <div class="form-row">
+        <div class="form-group <%= passwordErrors.new_password ? 'form-group--error' : '' %>">
+          <label for="new_password">Password Baru <span class="required">*</span></label>
+          <input type="password" id="new_password" name="new_password" autocomplete="new-password" required />
+          <% if (passwordErrors.new_password) { %><span class="form-error"><%= passwordErrors.new_password %></span><% } %>
+        </div>
+        <div class="form-group <%= passwordErrors.confirm_password ? 'form-group--error' : '' %>">
+          <label for="confirm_password">Konfirmasi Password <span class="required">*</span></label>
+          <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" required />
+          <% if (passwordErrors.confirm_password) { %><span class="form-error"><%= passwordErrors.confirm_password %></span><% } %>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="button-outline button-outline--danger"><i class="fa-solid fa-key"></i> Ganti Password</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<%- include('../../partials/backoffice-shell-end') %>

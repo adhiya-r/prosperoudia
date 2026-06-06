@@ -70,6 +70,8 @@ async function findPrescriptionById(prescriptionId) {
       'o.order_number',
       'o.status as order_status',
       'o.payment_status',
+      'o.payment_proof_path',
+      'o.payment_proof_uploaded_at',
       'o.total_amount',
       'c.full_name as customer_name',
       'c.email as customer_email',
@@ -117,9 +119,31 @@ async function updatePrescriptionReview(trx, prescriptionId, payload) {
   return record ?? null;
 }
 
+async function findPrescriptionsByEmail(email) {
+  return database('prescriptions as p')
+    .innerJoin('orders as o', 'o.id', 'p.order_id')
+    .innerJoin('customers as c', 'c.id', 'p.customer_id')
+    .select(
+      'p.id',
+      'p.order_id',
+      'p.doctor_name',
+      'p.prescription_number',
+      'p.image_path',
+      'p.status',
+      'p.reviewed_notes',
+      'p.rejection_reason',
+      'p.created_at',
+      'o.order_number',
+      'o.status as order_status'
+    )
+    .whereRaw('LOWER(c.email) = LOWER(?)', [email])
+    .orderBy('p.created_at', 'desc');
+}
+
 module.exports = {
   createPrescription,
   findPendingPrescriptions,
   findPrescriptionById,
+  findPrescriptionsByEmail,
   updatePrescriptionReview
 };

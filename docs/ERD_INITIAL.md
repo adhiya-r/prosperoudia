@@ -155,6 +155,8 @@ Skema tambahan akan ditambahkan setelah alur inti stabil.
 - status
 - payment_status
 - payment_method
+- payment_proof_path
+- payment_proof_uploaded_at
 - subtotal_amount
 - discount_amount
 - shipping_amount

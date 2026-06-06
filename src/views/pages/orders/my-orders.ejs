@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="storefront-page profile-page">
+    <%- include('../../partials/storefront-header') %>
+
+    <main class="storefront-shell">
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
+      <% } %>
+
+      <nav class="storefront-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span>›</span>
+        <span>Pesanan Saya</span>
+      </nav>
+
+      <div class="profile-edit-layout">
+        <%- include('../../partials/profile-sidebar', { activePage: 'orders' }) %>
+
+
+        <div class="profile-edit-content">
+
+          <!-- Pesanan Aktif -->
+          <section class="profile-card">
+            <div class="profile-card__header">
+              <h1><i class="fa-solid fa-clock-rotate-left"></i> Pesanan Berjalan</h1>
+              <p>Pesanan yang sedang diproses</p>
+            </div>
+            <div class="orders-list">
+              <% if (!activeOrders.length) { %>
+                <div class="orders-empty">
+                  <i class="fa-solid fa-box-open"></i>
+                  <p>Belum ada pesanan aktif</p>
+                  <a href="/" class="button-primary">Mulai Belanja</a>
+                </div>
+              <% } else { %>
+                <% activeOrders.forEach(function(order) { %>
+                  <div class="order-item">
+                    <div class="order-item__top">
+                      <div>
+                        <span class="order-item__number">#<%= order.order_number %></span>
+                        <span class="badge badge--<%= order.statusTone %> order-item__status"><%= order.statusLabel %></span>
+                      </div>
+                      <span class="order-item__date"><%= order.placedAtLabel %></span>
+                    </div>
+                    <div class="order-item__details">
+                      <span><i class="fa-solid fa-credit-card"></i> <%= order.paymentStatusLabel %></span>
+                      <% if (order.fulfillment_method) { %>
+                        <span><i class="fa-solid fa-truck"></i> <%= order.fulfillment_method === 'delivery' ? 'Diantar' : 'Ambil di klinik' %></span>
+                      <% } %>
+                    </div>
+                    <div class="order-item__footer">
+                      <strong class="order-item__total"><%= order.totalAmountLabel %></strong>
+                    </div>
+
+                    <div class="order-item__details">
+                      <% if (order.hasPaymentProof) { %>
+                        <span><i class="fa-solid fa-file-invoice"></i> Bukti pembayaran sudah diunggah</span>
+                        <span><a href="<%= order.payment_proof_path %>" target="_blank" rel="noreferrer">Lihat file</a></span>
+                      <% } else { %>
+                        <span><i class="fa-solid fa-circle-exclamation"></i> Bukti pembayaran belum diunggah</span>
+                      <% } %>
+                    </div>
+
+                    <% if (order.canUploadPaymentProof) { %>
+                      <form action="/orders/<%= order.id %>/payment-proof?csrfToken=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" class="auth-form">
+                        <%- include('../../partials/csrf-field') %>
+                        <label class="field">
+                          <span><%= order.hasPaymentProof ? 'Ganti Bukti Pembayaran' : 'Upload Bukti Pembayaran' %></span>
+                          <input type="file" name="payment_proof" accept=".jpg,.jpeg,.png,.webp,.pdf" required />
+                          <small class="subtitle">
+                            Opsional saat checkout, tetapi disarankan agar kasir bisa langsung verifikasi.
+                            <% if (order.hasPaymentProof) { %>Terakhir diunggah <%= order.paymentProofUploadedAtLabel %>.<% } %>
+                          </small>
+                        </label>
+                        <button type="submit" class="button-outline">Kirim Bukti</button>
+                      </form>
+                    <% } %>
+                  </div>
+                <% }); %>
+              <% } %>
+            </div>
+          </section>
+
+          <!-- Riwayat Pesanan -->
+          <section class="profile-card">
+            <div class="profile-card__header">
+              <h2><i class="fa-solid fa-receipt"></i> Riwayat Pesanan</h2>
+              <p>Pesanan yang sudah selesai atau dibatalkan</p>
+            </div>
+            <div class="orders-list">
+              <% if (!historyOrders.length) { %>
+                <div class="orders-empty">
+                  <i class="fa-solid fa-inbox"></i>
+                  <p>Belum ada riwayat pesanan</p>
+                </div>
+              <% } else { %>
+                <% historyOrders.forEach(function(order) { %>
+                  <div class="order-item order-item--muted">
+                    <div class="order-item__top">
+                      <div>
+                        <span class="order-item__number">#<%= order.order_number %></span>
+                        <span class="badge badge--<%= order.statusTone %> order-item__status"><%= order.statusLabel %></span>
+                      </div>
+                      <span class="order-item__date"><%= order.placedAtLabel %></span>
+                    </div>
+                    <div class="order-item__details">
+                      <span><i class="fa-solid fa-credit-card"></i> <%= order.paymentStatusLabel %></span>
+                      <% if (order.fulfillment_method) { %>
+                        <span><i class="fa-solid fa-truck"></i> <%= order.fulfillment_method === 'delivery' ? 'Diantar' : 'Ambil di klinik' %></span>
+                      <% } %>
+                    </div>
+                    <div class="order-item__footer">
+                      <strong class="order-item__total"><%= order.totalAmountLabel %></strong>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } %>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </main>
+
+    <footer class="storefront-footer">
+      <p>&copy; <%= currentYear %> <%= appName %>. Semua hak dilindungi.</p>
+    </footer>
+  </body>
+</html>

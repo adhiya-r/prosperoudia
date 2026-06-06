@@ -4,67 +4,7 @@
     <%- include('../../partials/head') %>
   </head>
   <body class="home-page storefront-page">
-    <header class="storefront-header">
-      <div class="storefront-header__main">
-        <a href="/" class="brand-logo" aria-label="Prosperoudia">
-          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" />
-        </a>
-
-        <div class="storefront-actions">
-          <div class="cart-preview">
-            <a href="/cart" class="cart-link cart-link-icon-only" aria-label="Lihat keranjang belanja">
-              <span class="cart-link__icon">🛒</span>
-              <% if (cart.totalQuantity > 0) { %>
-                <span class="cart-link__count"><%= cart.totalQuantity %></span>
-              <% } %>
-            </a>
-            <div class="cart-preview__panel">
-              <% if (cart.isEmpty) { %>
-                <div class="cart-preview__empty">
-                  <strong>Keranjang belanjamu kosong</strong>
-                  <p>Yuk, isi dengan obat dan kebutuhan kesehatan harian.</p>
-                  <a href="/" class="button-outline button-outline-block">Mulai Belanja</a>
-                </div>
-              <% } else { %>
-                <div class="cart-preview__items">
-                  <% cart.previewItems.forEach((item) => { %>
-                    <article class="cart-preview__item">
-                      <div>
-                        <strong><%= item.name %></strong>
-                        <span><%= item.quantity %> x <%= item.unit_price_label %></span>
-                      </div>
-                      <span><%= item.line_total_label %></span>
-                    </article>
-                  <% }) %>
-                </div>
-                <div class="cart-preview__footer">
-                  <strong>Total <%= cart.totalAmountLabel %></strong>
-                  <a href="/cart">Lihat semua</a>
-                </div>
-              <% } %>
-            </div>
-          </div>
-          <% if (!currentUser) { %>
-            <a href="/register?mode=login" class="storefront-login storefront-login-soft">Masuk</a>
-            <a href="/register" class="button-ghost">Daftar</a>
-          <% } else { %>
-            <details class="profile-menu">
-              <summary class="profile-menu__trigger">
-                <span class="profile-avatar"><%= currentUser.full_name.charAt(0).toUpperCase() %></span>
-                <span class="profile-name"><%= currentUser.full_name %></span>
-              </summary>
-              <div class="profile-menu__panel">
-                <a href="/dashboard">Dashboard</a>
-                <form action="/logout" method="post">
-                  <%- include('../../partials/csrf-field') %>
-                  <button type="submit">Logout</button>
-                </form>
-              </div>
-            </details>
-          <% } %>
-        </div>
-      </div>
-    </header>
+    <%- include('../../partials/storefront-header') %>
 
     <main class="storefront-shell">
       <% if (flashMessage) { %>
@@ -79,8 +19,8 @@
 
       <% if (!cart.items.length) { %>
         <section class="cart-empty-state">
-          <div class="cart-empty-state__icon">🧺</div>
-          <h1>Keranjang belanjamu kosong</h1>
+          <div class="cart-empty-state__icon"><i class="fa-solid fa-basket-shopping"></i></div>
+          <h1>Keranjang masih kosong</h1>
           <p>Isi dulu dengan obat, vitamin, atau alat kesehatan yang kamu butuhkan.</p>
           <div class="cart-empty-state__actions">
             <a href="/" class="button-solid">Mulai Belanja</a>
@@ -157,5 +97,6 @@
         </section>
       <% } %>
     </main>
+    <script src="/dashboard-assets/js/ui.js" defer></script>
   </body>
 </html>

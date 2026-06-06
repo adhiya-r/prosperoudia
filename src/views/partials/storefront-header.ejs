@@ -1,0 +1,132 @@
+<% const activeCart = typeof cartSummary !== 'undefined' ? cartSummary : (typeof cart !== 'undefined' ? cart : { totalQuantity: 0, isEmpty: true, previewItems: [] }); %>
+<header class="storefront-header">
+  <div class="storefront-header__main">
+    <a href="/" class="brand-logo" aria-label="Prosperoudia">
+      <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" />
+    </a>
+
+    <div class="storefront-actions">
+      <% const latestNotifications = Array.isArray(userNotifications) ? userNotifications : []; %>
+
+      <% if (currentUser) { %>
+        <div class="icon-preview">
+          <a href="<%= isCustomerUser ? '/orders' : '/notifications' %>" class="cart-link cart-link-icon-only" aria-label="Lihat notifikasi">
+            <span class="cart-link__icon"><i class="fa-solid fa-bell"></i></span>
+            <% if (userNotificationUnreadCount > 0) { %>
+              <span class="cart-link__count"><%= userNotificationUnreadCount %></span>
+            <% } %>
+          </a>
+          <div class="cart-preview__panel">
+            <% if (!latestNotifications.length) { %>
+              <div class="cart-preview__empty">
+                <strong>Belum ada notifikasi</strong>
+                <p>Alert order, resep, dan pembayaran akan muncul di sini.</p>
+                <a href="<%= isCustomerUser ? '/orders' : '/notifications' %>" class="button-outline button-outline-block">Buka riwayat</a>
+              </div>
+            <% } else { %>
+              <div class="cart-preview__toolbar">
+                <strong>Notifikasi</strong>
+                <% if (userNotificationUnreadCount > 0) { %>
+                  <form action="/notifications/read-all?csrfToken=<%= encodeURIComponent(csrfToken) %>" method="post" class="inline-form">
+                    <input type="hidden" name="redirect_to" value="<%= isCustomerUser ? '/orders' : '/notifications' %>" />
+                    <button type="submit" class="cart-preview__action-link">Tandai semua dibaca</button>
+                  </form>
+                <% } %>
+              </div>
+              <div class="cart-preview__items">
+                <% latestNotifications.forEach((notification) => { %>
+                  <article class="cart-preview__item">
+                    <a href="<%= notification.open_url %>" class="cart-preview__link">
+                      <div>
+                        <strong><%= notification.title %></strong>
+                        <span><%= notification.message %></span>
+                      </div>
+                      <% if (!notification.is_read) { %>
+                        <span class="cart-preview__unread-dot" aria-hidden="true"></span>
+                      <% } %>
+                    </a>
+                  </article>
+                <% }) %>
+              </div>
+              <div class="cart-preview__footer">
+                <strong><%= userNotificationUnreadCount %> belum dibaca</strong>
+                <a href="<%= isCustomerUser ? '/orders' : '/notifications' %>">Buka</a>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Cart preview -->
+      <div class="icon-preview">
+        <a href="/cart" class="cart-link cart-link-icon-only" aria-label="Lihat keranjang belanja">
+          <span class="cart-link__icon"><i class="fa-solid fa-cart-shopping"></i></span>
+          <% if (activeCart.totalQuantity > 0) { %>
+            <span class="cart-link__count"><%= activeCart.totalQuantity %></span>
+          <% } %>
+        </a>
+        <div class="cart-preview__panel">
+          <% if (activeCart.isEmpty) { %>
+            <div class="cart-preview__empty">
+              <strong data-i18n="storefront.cart_empty">Keranjang masih kosong</strong>
+              <p data-i18n="storefront.cart_empty_hint">Yuk, isi dengan obat dan kebutuhan kesehatan harian.</p>
+              <a href="/" class="button-outline button-outline-block" data-i18n="storefront.start_shopping">Mulai Belanja</a>
+            </div>
+          <% } else { %>
+              <div class="cart-preview__items">
+                <% activeCart.previewItems.forEach((item) => { %>
+                <article class="cart-preview__item">
+                  <div>
+                    <strong><%= item.name %></strong>
+                    <span><%= item.quantity %> x <%= item.unit_price_label %></span>
+                  </div>
+                  <span><%= item.line_total_label %></span>
+                </article>
+                <% }) %>
+              </div>
+              <div class="cart-preview__footer">
+                <strong><span data-i18n="storefront.total">Total</span> <%= activeCart.totalAmountLabel %></strong>
+                <a href="/cart" data-i18n="storefront.view_all">Lihat semua</a>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+      <!-- Login / Register / Profile Menu -->
+      <% if (!currentUser) { %>
+        <% if (typeof pageTitle !== 'undefined' && pageTitle === 'Daftar') { %>
+          <a href="/register?mode=login" class="storefront-login" data-i18n="storefront.login">Masuk</a>
+        <% } else { %>
+          <button type="button" class="storefront-login" data-open-login data-i18n="storefront.login">Masuk</button>
+        <% } %>
+        <a href="/register" class="button-ghost" data-i18n="storefront.register">Daftar</a>
+      <% } else { %>
+        <details class="profile-menu">
+          <summary class="profile-menu__trigger">
+            <% if (currentUser.avatar_url) { %>
+              <img class="profile-avatar profile-avatar--photo"
+                   src="<%= currentUser.avatar_url %>"
+                   alt="Foto profil" />
+            <% } else { %>
+              <span class="profile-avatar"><%= currentUser.full_name.charAt(0).toUpperCase() %></span>
+            <% } %>
+            <span class="profile-name"><%= currentUser.full_name %></span>
+          </summary>
+          <div class="profile-menu__panel">
+            <% if (isCustomerUser) { %>
+              <a href="/profil/edit"><i class="fa-solid fa-user-pen"></i> Edit Profil</a>
+              <a href="/orders"><i class="fa-solid fa-bag-shopping"></i> Pesanan Saya</a>
+            <% } else { %>
+              <a href="<%= dashboardPath %>"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+              <a href="/profile"><i class="fa-solid fa-user-pen"></i> Profil Saya</a>
+            <% } %>
+            <form action="/logout" method="post">
+              <%- include('./csrf-field') %>
+              <button type="submit" data-i18n="nav.logout"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+            </form>
+          </div>
+        </details>
+      <% } %>
+    </div>
+  </div>
+</header>

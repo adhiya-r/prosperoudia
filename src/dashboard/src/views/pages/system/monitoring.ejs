@@ -1,0 +1,87 @@
+<%- include('../../partials/head', { pageTitle }) %>
+
+<div class="app-shell">
+  <%- include('../../partials/sidebar', { activePage }) %>
+
+  <div class="main-column">
+    <%- include('../../partials/topbar', { pageTitle }) %>
+
+    <main class="page-content">
+      <section class="module-pagebar">
+        <div class="module-pagebar__copy">
+          <p class="eyebrow" data-i18n="monitoring.system">System</p>
+          <p class="module-pagebar__text"><%= monitoringDescription %></p>
+        </div>
+      </section>
+
+      <section class="metric-grid">
+        <% monitoringMetrics.forEach(function(metric) { %>
+          <article class="metric-card">
+            <p class="metric-card__label"><%= metric.label %></p>
+            <p class="metric-card__value"><%= metric.value %></p>
+          </article>
+        <% }) %>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title"><%= primaryPanelTitle %></h2>
+              <p class="panel__subtext"><%= primaryPanelDescription %></p>
+            </div>
+          </div>
+
+          <div class="dashboard-table">
+            <% primaryRows.forEach(function(row) { %>
+              <div class="dashboard-table__row">
+                <div>
+                  <p class="dashboard-table__title"><%= row.label %></p>
+                </div>
+                <div class="dashboard-table__meta">
+                  <% if (row.href) { %>
+                    <a class="badge badge--info" href="<%= row.href %>"><%= row.value %></a>
+                  <% } else if (row.tone) { %>
+                    <span class="badge badge--<%= row.tone %>"><%= row.value %></span>
+                  <% } else { %>
+                    <span class="badge badge--neutral"><%= row.value %></span>
+                  <% } %>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title"><%= secondaryPanelTitle %></h2>
+              <p class="panel__subtext"><%= secondaryPanelDescription %></p>
+            </div>
+          </div>
+
+          <div class="dashboard-table">
+            <% secondaryRows.forEach(function(row) { %>
+              <div class="dashboard-table__row">
+                <div>
+                  <p class="dashboard-table__title"><%= row.label %></p>
+                </div>
+                <div class="dashboard-table__meta">
+                  <% if (row.href) { %>
+                    <a class="badge badge--info" href="<%= row.href %>"><%= row.value %></a>
+                  <% } else if (row.tone) { %>
+                    <span class="badge badge--<%= row.tone %>"><%= row.value %></span>
+                  <% } else { %>
+                    <span class="badge badge--neutral"><%= row.value %></span>
+                  <% } %>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+</div>
+
+<%- include('../../partials/footer') %>

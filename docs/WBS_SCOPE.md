@@ -19,9 +19,7 @@ Deliverable:
 - planning decisions
 - module backlog
 
-Status:
-
-- `sebagian sudah tersedia`
+Status: `selesai untuk prototype`
 
 ### 2. Desain Sistem dan Database
 
@@ -32,9 +30,7 @@ Deliverable:
 - migration plan
 - struktur folder modular
 
-Status:
-
-- `sebagian besar fondasi sudah tersedia`
+Status: `selesai untuk prototype`; ERD tetap perlu diperbarui jika schema berubah
 
 ### 3. Fondasi Aplikasi
 
@@ -47,9 +43,7 @@ Deliverable:
 - migration dan seed awal
 - blackbox tests dasar
 
-Status:
-
-- `sudah tersedia`
+Status: `selesai`
 
 ### 4. Autentikasi dan Keamanan
 
@@ -62,9 +56,7 @@ Deliverable:
 - session timeout
 - audit log auth events
 
-Status:
-
-- `baru sebagian`
+Status: `parsial`; verifikasi email dan hardening produksi belum tersedia
 
 ### 5. Master Data
 
@@ -75,9 +67,7 @@ Deliverable:
 - CRUD obat
 - CRUD pelanggan
 
-Status:
-
-- `kategori dan supplier baru sebagian`
+Status: `parsial`; obat/kategori/supplier lengkap, customer bisnis belum lengkap
 
 ### 6. Katalog dan Storefront
 
@@ -89,9 +79,7 @@ Deliverable:
 - detail produk
 - gambar produk
 
-Status:
-
-- `homepage sample sudah ada, sisanya belum`
+Status: `parsial`; katalog/search/filter/detail/gambar aktif, sorting harga belum lengkap
 
 ### 7. Transaksi dan Pesanan
 
@@ -103,9 +91,7 @@ Deliverable:
 - konfirmasi pesanan
 - order management internal
 
-Status:
-
-- `belum dimulai`
+Status: `parsial`; cart/checkout/order management aktif, bukti pembayaran dapat diunggah, pembayaran gateway masih simulasi
 
 ### 8. Resep dan Validasi Klinis
 
@@ -115,9 +101,7 @@ Deliverable:
 - verifikasi apoteker
 - relasi resep ke order
 
-Status:
-
-- `belum dimulai`
+Status: `selesai untuk prototype`; upload, preview, dan review resep aktif
 
 ### 9. Inventory dan FIFO
 
@@ -129,9 +113,7 @@ Deliverable:
 - expiry tracking
 - stock threshold alert
 
-Status:
-
-- `schema ada, logic belum`
+Status: `parsial`; FIFO aktif saat order selesai, reversal/reservasi/alert expiry belum lengkap
 
 ### 10. Dashboard, Report, dan Monitoring
 
@@ -144,23 +126,19 @@ Deliverable:
 - audit log page
 - monitoring page
 
-Status:
-
-- `belum dimulai`
+Status: `parsial`; dashboard, PDF, monitoring, error log aktif, audit/error page masih mengandalkan donor
 
 ### 11. Notifikasi dan Job Simulation
 
 Deliverable:
 
-- notifikasi status order
+- notifikasi status order/resep/bukti pembayaran
 - alert stok rendah
 - alert expiry
 - job queue simulation
 - import/report background job simulation
 
-Status:
-
-- `belum dimulai`
+Status: `parsial/simulasi`; notifikasi per-user aktif untuk flow utama, job record aktif, worker queue dan alert otomatis belum lengkap
 
 ### 12. Migrasi, Cutover, dan Evidence
 
@@ -174,9 +152,7 @@ Deliverable:
 - software update simulation
 - impact analysis
 
-Status:
-
-- `belum dimulai`
+Status: `selesai sebagai dokumen`; evidence simulasi aktual masih perlu dikumpulkan
 
 ### 13. Dokumentasi Pengguna dan Testing
 
@@ -188,9 +164,7 @@ Deliverable:
 - UAT scenario/result
 - debugging report
 
-Status:
-
-- `belum dimulai`
+Status: `parsial`; user guide, FAQ, troubleshooting tersedia, UAT/debugging report masih berjalan
 
 ## Scope Prioritas
 
@@ -229,6 +203,7 @@ MVP dianggap cukup untuk lanjut ke dokumen final bila:
 - admin bisa kelola master data inti
 - pelanggan bisa membuat pesanan
 - apoteker bisa memverifikasi resep
+- kasir/admin bisa mengecek bukti pembayaran
 - stok bisa berubah berdasarkan batch FIFO
 - laporan dan notifikasi dasar bisa didemokan
 

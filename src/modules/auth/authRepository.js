@@ -9,6 +9,7 @@ async function findUserByIdentifier(identifier) {
       'email',
       'password_hash',
       'phone',
+      'avatar_url',
       'is_active',
       'last_login_at'
     )
@@ -20,14 +21,14 @@ async function findUserByIdentifier(identifier) {
 
 async function findUserByUsername(username) {
   return database('users')
-    .select('id', 'username', 'email')
+    .select('id', 'username', 'email', 'avatar_url')
     .whereRaw('LOWER(username) = LOWER(?)', [username])
     .first();
 }
 
 async function findUserByEmail(email) {
   return database('users')
-    .select('id', 'username', 'email')
+    .select('id', 'full_name', 'username', 'email', 'phone', 'avatar_url', 'is_active')
     .whereRaw('LOWER(email) = LOWER(?)', [email])
     .first();
 }

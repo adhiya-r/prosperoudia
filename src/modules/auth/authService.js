@@ -12,6 +12,8 @@ function buildSessionUser(user, roles) {
     username: user.username,
     email: user.email,
     phone: user.phone,
+    avatar_url: user.avatar_url ?? null,
+    assigned_warehouse_id: null,
     role: primaryRole?.name ?? null,
     primaryRole,
     roles
@@ -170,8 +172,83 @@ async function registerCustomerAccount(payload) {
   };
 }
 
+async function generateUniqueUsername(email, fullName) {
+  let base = String(email.split('@')[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (base.length < 4) {
+    base = base + 'user';
+  }
+  let username = base;
+  let suffix = 1;
+  while (true) {
+    const existing = await authRepository.findUserByUsername(username);
+    if (!existing) {
+      break;
+    }
+    username = `${base}${suffix}`;
+    suffix++;
+  }
+  return username;
+}
+
+async function registerOrLoginGoogleUser(email, fullName) {
+  const existingUser = await authRepository.findUserByEmail(email);
+
+  if (existingUser) {
+    const userDetails = await authRepository.findUserByIdentifier(existingUser.username);
+    if (!userDetails.is_active) {
+      return {
+        ok: false,
+        message: 'Akun dengan email ini tidak aktif.'
+      };
+    }
+
+    const roles = await authRepository.findRolesByUserId(userDetails.id);
+    await authRepository.updateLastLoginAt(userDetails.id);
+
+    return {
+      ok: true,
+      isNew: false,
+      sessionUser: buildSessionUser(userDetails, roles)
+    };
+  }
+
+  // Create new customer account
+  const customerRole = await authRepository.findRoleByName('Pelanggan');
+  if (!customerRole) {
+    throw new Error('Role pelanggan belum tersedia.');
+  }
+
+  const username = await generateUniqueUsername(email, fullName);
+  const randomPassword = require('crypto').randomBytes(16).toString('hex') + 'A1!';
+  const passwordHash = hashPassword(randomPassword);
+
+  const result = await database.transaction(async (trx) => {
+    const user = await authRepository.createUser(trx, {
+      full_name: fullName || email.split('@')[0],
+      username,
+      email,
+      phone: null,
+      password_hash: passwordHash
+    });
+
+    await authRepository.assignRoleToUser(trx, user.id, customerRole.id);
+
+    return {
+      user,
+      roles: [customerRole]
+    };
+  });
+
+  return {
+    ok: true,
+    isNew: true,
+    sessionUser: buildSessionUser(result.user, result.roles)
+  };
+}
+
 module.exports = {
   authenticateLogin,
   registerCustomerAccount,
-  validateRegistrationPayload
+  validateRegistrationPayload,
+  registerOrLoginGoogleUser
 };

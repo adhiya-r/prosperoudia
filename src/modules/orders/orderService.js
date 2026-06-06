@@ -2,6 +2,7 @@ const database = require('../../config/database');
 const cartService = require('./cartService');
 const orderRepository = require('./orderRepository');
 const prescriptionRepository = require('../prescriptions/prescriptionRepository');
+const { hasOpenableFileReference, normalizeFileReference } = require('../../shared/utils/fileReference');
 
 const PAYMENT_METHODS = [
   { value: 'transfer_bank', label: 'Transfer Bank' },
@@ -38,7 +39,8 @@ function validateCheckoutPayload(payload = {}) {
   const notes = String(payload.notes ?? '').trim();
   const doctorName = String(payload.doctor_name ?? '').trim();
   const prescriptionNumber = String(payload.prescription_number ?? '').trim();
-  const prescriptionImagePath = String(payload.prescription_image_path ?? '').trim();
+  const prescriptionImagePath = normalizeFileReference(payload.prescription_image_path);
+  const paymentProofPath = normalizeFileReference(payload.payment_proof_path);
   const errors = {};
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phonePattern = /^[0-9+]{8,15}$/;
@@ -86,7 +88,8 @@ function validateCheckoutPayload(payload = {}) {
       notes: notes || null,
       doctor_name: doctorName,
       prescription_number: prescriptionNumber || null,
-      prescription_image_path: prescriptionImagePath
+      prescription_image_path: prescriptionImagePath,
+      payment_proof_path: paymentProofPath || null
     }
   };
 }
@@ -102,7 +105,8 @@ function buildCheckoutDefaults(sessionUser = {}) {
     notes: '',
     doctor_name: '',
     prescription_number: '',
-    prescription_image_path: ''
+    prescription_image_path: '',
+    payment_proof_path: ''
   };
 }
 
@@ -149,8 +153,8 @@ async function createOrderFromCart(session, sessionUser, payload) {
       validation.errors.doctor_name = 'Nama dokter wajib diisi untuk pesanan yang memerlukan resep.';
     }
 
-    if (!validation.value.prescription_image_path || validation.value.prescription_image_path.length < 5) {
-      validation.errors.prescription_image_path = 'Referensi resep wajib diisi untuk pesanan yang memerlukan resep.';
+    if (!hasOpenableFileReference(validation.value.prescription_image_path)) {
+      validation.errors.prescription_image_path = 'Upload file resep atau isi link resep yang valid.';
     }
   }
 
@@ -184,6 +188,8 @@ async function createOrderFromCart(session, sessionUser, payload) {
       shipping_amount: 0,
       total_amount: cart.totalAmount,
       notes: validation.value.notes,
+      payment_proof_path: validation.value.payment_proof_path,
+      payment_proof_uploaded_at: validation.value.payment_proof_path ? trx.fn.now() : null,
       placed_at: trx.fn.now(),
       confirmed_at: hasPrescriptionItem ? null : trx.fn.now()
     });
@@ -216,7 +222,8 @@ async function createOrderFromCart(session, sessionUser, payload) {
     return {
       id: order.id,
       order_number: order.order_number,
-      status: orderStatus
+      status: orderStatus,
+      payment_proof_path: validation.value.payment_proof_path
     };
   });
 
@@ -247,6 +254,7 @@ async function getOrderConfirmation(orderId) {
     totalAmountLabel: formatCurrencyIDR(order.total_amount),
     paymentMethodLabel: PAYMENT_METHODS.find((item) => item.value === order.payment_method)?.label || order.payment_method || '-',
     fulfillmentMethodLabel: FULFILLMENT_METHODS.find((item) => item.value === order.fulfillment_method)?.label || order.fulfillment_method || '-',
+    hasPaymentProof: Boolean(order.payment_proof_path),
     items: order.items.map((item) => ({
       ...item,
       unitPriceLabel: formatCurrencyIDR(item.unit_price),
@@ -255,6 +263,8 @@ async function getOrderConfirmation(orderId) {
     prescription: order.prescription
       ? {
           ...order.prescription,
+          image_path: normalizeFileReference(order.prescription.image_path),
+          hasOpenableFile: hasOpenableFileReference(order.prescription.image_path),
           statusLabel: order.prescription.status === 'pending'
             ? 'Menunggu review apoteker'
             : order.prescription.status === 'approved'

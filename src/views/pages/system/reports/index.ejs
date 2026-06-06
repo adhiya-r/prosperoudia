@@ -1,17 +1,4 @@
-<!DOCTYPE html>
-<html lang="id">
-  <head>
-    <%- include('../../../partials/head') %>
-  </head>
-  <body class="app-page">
-    <main class="dashboard-shell">
-      <%- include('../../../partials/app-header', {
-        eyebrow: 'Reports',
-        heading: 'Laporan PDF',
-        subtitle: 'Generate ringkasan operasional apotek dalam format PDF dan pantau riwayat job laporan.',
-        showLogout: true
-      }) %>
-      <%- include('../../../partials/app-nav', { currentPath: '/system/reports' }) %>
+<%- include('../../../partials/backoffice-shell-start', { activePage: 'reports' }) %>
 
       <% if (flashMessage) { %>
         <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>" style="margin-top: 20px;"><%= flashMessage %></div>
@@ -75,6 +62,4 @@
           <% } %>
         </article>
       </section>
-    </main>
-  </body>
-</html>
+<%- include('../../../partials/backoffice-shell-end') %>

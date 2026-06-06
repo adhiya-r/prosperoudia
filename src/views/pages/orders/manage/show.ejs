@@ -1,51 +1,48 @@
-<!DOCTYPE html>
-<html lang="id">
-  <head>
-    <%- include('../../../partials/head') %>
-  </head>
-  <body class="app-page">
-    <main class="dashboard-shell">
-      <%- include('../../../partials/app-header', {
-        eyebrow: 'Operasional',
-        heading: `Order ${order.order_number}`,
-        subtitle: 'Detail order internal untuk monitoring status dan pembayaran.',
-        showLogout: true
-      }) %>
-      <%- include('../../../partials/app-nav', { currentPath: '/orders/manage' }) %>
+<%- include('../../../partials/backoffice-shell-start', { activePage: 'orders' }) %>
+
+      <%
+        const paymentProofPath = order.payment_proof_path || '';
+        const paymentProofIsPdf = /\.pdf($|\?)/i.test(paymentProofPath);
+        const paymentProofIsImage = /\.(jpg|jpeg|png|webp|gif)($|\?)/i.test(paymentProofPath);
+      %>
 
       <% if (flashMessage) { %>
         <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
       <% } %>
 
-      <section class="panel-grid panel-grid-wide">
-        <article class="panel-card">
-          <h2>Ringkasan Order</h2>
-          <dl class="detail-list">
-            <div>
-              <dt>Pelanggan</dt>
-              <dd><%= order.customer_name %></dd>
+      <section class="panel-grid approval-layout">
+        <article class="panel-card approval-card">
+          <h2>Preview & Item Order</h2>
+          <% if (order.hasPaymentProof) { %>
+            <div class="button-row" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+              <a href="<%= order.payment_proof_path %>" target="_blank" rel="noreferrer" class="button-primary">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Lihat Bukti Pembayaran
+              </a>
+              <% if (order.prescription) { %>
+                <a href="/prescriptions/<%= order.prescription.id %>" class="button-outline">
+                  <i class="fa-solid fa-file-prescription"></i> Lihat Resep
+                </a>
+              <% } %>
             </div>
-            <div>
-              <dt>Email</dt>
-              <dd><%= order.customer_email %></dd>
+          <% } %>
+
+          <% if (order.hasPaymentProof) { %>
+            <div class="form-section-divider"></div>
+            <h3>Preview Bukti Pembayaran</h3>
+            <div class="file-preview-card">
+              <div class="file-preview-card__header">
+                <strong>Bukti Pembayaran Pelanggan</strong>
+                <a href="<%= paymentProofPath %>" target="_blank" rel="noreferrer" class="button-outline">Buka File Penuh</a>
+              </div>
+              <% if (paymentProofIsImage) { %>
+                <img class="file-preview-card__image" src="<%= paymentProofPath %>" alt="Preview bukti pembayaran order <%= order.order_number %>" />
+              <% } else if (paymentProofIsPdf) { %>
+                <iframe class="file-preview-card__frame" src="<%= paymentProofPath %>" title="Preview bukti pembayaran order <%= order.order_number %>"></iframe>
+              <% } else { %>
+                <p class="subtitle">Preview inline belum tersedia untuk tipe file ini. Gunakan tombol buka file penuh.</p>
+              <% } %>
             </div>
-            <div>
-              <dt>HP</dt>
-              <dd><%= order.customer_phone %></dd>
-            </div>
-            <div>
-              <dt>Status Order</dt>
-              <dd><%= order.statusLabel %></dd>
-            </div>
-            <div>
-              <dt>Status Pembayaran</dt>
-              <dd><%= order.paymentStatusLabel %></dd>
-            </div>
-            <div>
-              <dt>Total</dt>
-              <dd><strong><%= order.totalAmountLabel %></strong></dd>
-            </div>
-          </dl>
+          <% } %>
 
           <% if (order.prescription) { %>
             <div class="alert <%= order.prescription.status === 'rejected' ? 'alert-danger' : 'alert-info' %>">
@@ -53,6 +50,9 @@
               <% if (order.prescription.rejection_reason) { %>
                 <span><%= order.prescription.rejection_reason %></span>
               <% } %>
+            </div>
+            <div class="alert alert-info">
+              File resep tersedia dan bisa dibuka dari tombol <strong>Lihat Resep</strong> di atas.
             </div>
           <% } %>
 
@@ -71,41 +71,125 @@
               </article>
             <% }) %>
           </div>
+
+          <div class="form-section-divider"></div>
+          <h3>Reminder</h3>
+          <div class="button-row" style="display:flex;gap:12px;flex-wrap:wrap;">
+            <% if (!order.hasPaymentProof) { %>
+              <form action="/orders/manage/<%= order.id %>/remind" method="post">
+                <%- include('../../../partials/csrf-field') %>
+                <input type="hidden" name="reminder_type" value="customer_payment_proof" />
+                <button type="submit" class="button-outline">Ingatkan Pelanggan</button>
+              </form>
+            <% } %>
+
+            <% if (currentRole === 'Admin' || currentRole === 'Apoteker') { %>
+              <form action="/orders/manage/<%= order.id %>/remind" method="post">
+                <%- include('../../../partials/csrf-field') %>
+                <input type="hidden" name="reminder_type" value="cashier_payment_review" />
+                <button type="submit" class="button-outline">Ingatkan Kasir</button>
+              </form>
+            <% } %>
+          </div>
         </article>
 
-        <article class="panel-card">
-          <h2>Update Status</h2>
-          <form action="/orders/manage/<%= order.id %>/status" method="post" class="auth-form">
-            <%- include('../../../partials/csrf-field') %>
-            <label class="field">
-              <span>Status Order</span>
-              <select name="status">
-                <% orderStatusOptions.forEach((item) => { %>
-                  <option value="<%= item.value %>" <%= formValues.status === item.value ? 'selected' : '' %>><%= item.label %></option>
-                <% }) %>
-              </select>
-              <% if (formErrors.status) { %><small class="field-error"><%= formErrors.status %></small><% } %>
-            </label>
+        <div class="approval-sidebar">
+          <article class="panel-card approval-card">
+            <h2>Ringkasan Order</h2>
+            <div class="button-row" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+              <% if (order.hasPaymentProof) { %>
+                <a href="<%= order.payment_proof_path %>" target="_blank" rel="noreferrer" class="button-primary">
+                  <i class="fa-solid fa-file-invoice-dollar"></i> Lihat Bukti Pembayaran
+                </a>
+              <% } %>
+              <% if (order.prescription) { %>
+                <a href="/prescriptions/<%= order.prescription.id %>" class="button-outline">
+                  <i class="fa-solid fa-file-prescription"></i> Lihat Resep
+                </a>
+              <% } %>
+            </div>
+            <dl class="detail-list">
+              <div>
+                <dt>Pelanggan</dt>
+                <dd><%= order.customer_name %></dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd><%= order.customer_email %></dd>
+              </div>
+              <div>
+                <dt>HP</dt>
+                <dd><%= order.customer_phone %></dd>
+              </div>
+              <div>
+                <dt>Status Order</dt>
+                <dd><%= order.statusLabel %></dd>
+              </div>
+              <div>
+                <dt>Status Pembayaran</dt>
+                <dd><%= order.paymentStatusLabel %></dd>
+              </div>
+              <div>
+                <dt>Total</dt>
+                <dd><strong><%= order.totalAmountLabel %></strong></dd>
+              </div>
+              <div>
+                <dt>Bukti Pembayaran</dt>
+                <dd>
+                  <% if (order.hasPaymentProof) { %>
+                    <a href="<%= order.payment_proof_path %>" target="_blank" rel="noreferrer">Buka file bukti pembayaran</a>
+                    <small style="display:block;color:var(--muted);margin-top:4px;">Diunggah <%= order.paymentProofUploadedAtLabel %></small>
+                  <% } else { %>
+                    <span>Belum diunggah</span>
+                  <% } %>
+                </dd>
+              </div>
+            </dl>
+          </article>
 
-            <label class="field">
-              <span>Status Pembayaran</span>
-              <select name="payment_status">
-                <% paymentStatusOptions.forEach((item) => { %>
-                  <option value="<%= item.value %>" <%= formValues.payment_status === item.value ? 'selected' : '' %>><%= item.label %></option>
-                <% }) %>
-              </select>
-              <% if (formErrors.payment_status) { %><small class="field-error"><%= formErrors.payment_status %></small><% } %>
-            </label>
+          <article class="panel-card approval-card approval-card--sticky">
+            <h2>Update Status</h2>
+            <% if (order.hasPaymentProof) { %>
+              <div class="approval-note">
+                <strong>Bukti pembayaran sudah tersedia.</strong>
+                <span>Silakan cek preview di panel kiri sebelum ubah status.</span>
+              </div>
+            <% } else { %>
+              <div class="approval-note approval-note--warning">
+                <strong>Bukti pembayaran belum ada.</strong>
+                <span>Gunakan reminder atau minta pelanggan upload dari Pesanan Saya.</span>
+              </div>
+            <% } %>
+            <form action="/orders/manage/<%= order.id %>/status" method="post" class="auth-form">
+              <%- include('../../../partials/csrf-field') %>
+              <label class="field">
+                <span>Status Order</span>
+                <select name="status">
+                  <% orderStatusOptions.forEach((item) => { %>
+                    <option value="<%= item.value %>" <%= formValues.status === item.value ? 'selected' : '' %>><%= item.label %></option>
+                  <% }) %>
+                </select>
+                <% if (formErrors.status) { %><small class="field-error"><%= formErrors.status %></small><% } %>
+              </label>
 
-            <label class="field">
-              <span>Catatan Internal</span>
-              <textarea name="notes" rows="4" placeholder="Catatan internal order"><%= formValues.notes || '' %></textarea>
-            </label>
+              <label class="field">
+                <span>Status Pembayaran</span>
+                <select name="payment_status">
+                  <% paymentStatusOptions.forEach((item) => { %>
+                    <option value="<%= item.value %>" <%= formValues.payment_status === item.value ? 'selected' : '' %>><%= item.label %></option>
+                  <% }) %>
+                </select>
+                <% if (formErrors.payment_status) { %><small class="field-error"><%= formErrors.payment_status %></small><% } %>
+              </label>
 
-            <button type="submit" class="button-primary">Simpan Update</button>
-          </form>
-        </article>
+              <label class="field">
+                <span>Catatan Internal</span>
+                <textarea name="notes" rows="4" placeholder="Catatan internal order"><%= formValues.notes || '' %></textarea>
+              </label>
+
+              <button type="submit" class="button-primary">Simpan Update</button>
+            </form>
+          </article>
+        </div>
       </section>
-    </main>
-  </body>
-</html>
+<%- include('../../../partials/backoffice-shell-end') %>

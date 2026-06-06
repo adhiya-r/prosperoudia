@@ -4,73 +4,13 @@
     <%- include('../../partials/head') %>
   </head>
   <body class="home-page storefront-page">
-    <header class="storefront-header">
-      <div class="storefront-header__main">
-        <a href="/" class="brand-logo" aria-label="Prosperoudia">
-          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" />
-        </a>
-
-        <div class="storefront-actions">
-          <div class="cart-preview">
-            <a href="/cart" class="cart-link cart-link-icon-only" aria-label="Lihat keranjang belanja">
-              <span class="cart-link__icon">🛒</span>
-              <% if (cartSummary.totalQuantity > 0) { %>
-                <span class="cart-link__count"><%= cartSummary.totalQuantity %></span>
-              <% } %>
-            </a>
-            <div class="cart-preview__panel">
-              <% if (cartSummary.isEmpty) { %>
-                <div class="cart-preview__empty">
-                  <strong>Keranjang belanjamu kosong</strong>
-                  <p>Yuk, isi dengan obat dan kebutuhan kesehatan harian.</p>
-                  <a href="/" class="button-outline button-outline-block">Mulai Belanja</a>
-                </div>
-              <% } else { %>
-                <div class="cart-preview__items">
-                  <% cartSummary.previewItems.forEach((item) => { %>
-                    <article class="cart-preview__item">
-                      <div>
-                        <strong><%= item.name %></strong>
-                        <span><%= item.quantity %> x <%= item.unit_price_label %></span>
-                      </div>
-                      <span><%= item.line_total_label %></span>
-                    </article>
-                  <% }) %>
-                </div>
-                <div class="cart-preview__footer">
-                  <strong>Total <%= cartSummary.totalAmountLabel %></strong>
-                  <a href="/cart">Lihat semua</a>
-                </div>
-              <% } %>
-            </div>
-          </div>
-          <% if (!currentUser) { %>
-            <button type="button" class="storefront-login" data-open-login>Masuk</button>
-            <a href="/register" class="button-ghost">Daftar</a>
-          <% } else { %>
-            <details class="profile-menu">
-              <summary class="profile-menu__trigger">
-                <span class="profile-avatar"><%= currentUser.full_name.charAt(0).toUpperCase() %></span>
-                <span class="profile-name"><%= currentUser.full_name %></span>
-              </summary>
-              <div class="profile-menu__panel">
-                <a href="/dashboard">Dashboard</a>
-                <form action="/logout" method="post">
-                  <%- include('../../partials/csrf-field') %>
-                  <button type="submit">Logout</button>
-                </form>
-              </div>
-            </details>
-          <% } %>
-        </div>
-      </div>
-    </header>
+    <%- include('../../partials/storefront-header') %>
 
     <main class="storefront-shell">
       <nav class="storefront-breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
         <span>›</span>
-        <span>Toko Kesehatan</span>
+        <span data-i18n="storefront.health_store">Toko Kesehatan</span>
       </nav>
 
       <section class="storefront-search-panel">
@@ -80,12 +20,13 @@
             name="q"
             value="<%= searchQuery %>"
             placeholder="Cari obat, vitamin, atau alat kesehatan"
+            data-i18n-placeholder="storefront.search_placeholder"
             aria-label="Cari produk"
             autocomplete="off"
             data-search-input
           />
           <input type="hidden" name="category" value="<%= activeCategoryFilter %>" data-active-category />
-          <button type="submit" class="storefront-search__button">Cari</button>
+          <button type="submit" class="storefront-search__button" data-i18n="storefront.search">Cari</button>
         </form>
         <div class="search-suggestions" data-search-suggestions hidden></div>
       </section>
@@ -193,7 +134,7 @@
               type="text"
               name="identifier"
               value="<%= loginFormValues.identifier %>"
-              placeholder="contoh: admin atau email@contoh.com"
+              placeholder="Email atau username"
               autocomplete="username"
             />
           </label>
@@ -204,7 +145,7 @@
               <input
                 type="password"
                 name="password"
-                placeholder="Masukkan password"
+                placeholder="Password"
                 autocomplete="current-password"
                 data-password-input
               />
@@ -218,7 +159,10 @@
         <div class="auth-divider"><span>atau</span></div>
 
         <div class="placeholder-stack">
-          <button type="button" class="button-outline button-outline-block" disabled>Masuk dengan Google</button>
+          <a href="/auth/google" class="button-outline button-outline-block" style="display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;">
+            <i class="fa-brands fa-google"></i>
+            Masuk dengan Google
+          </a>
         </div>
 
         <p class="auth-help">
@@ -228,6 +172,7 @@
       </section>
     </div>
 
-    <script src="/js/home.js"></script>
+    <script src="/dashboard-assets/js/ui.js" defer></script>
+    <script src="/js/home.js" defer></script>
   </body>
 </html>

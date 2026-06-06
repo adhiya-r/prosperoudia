@@ -61,6 +61,7 @@ Dampak:
 
 - status order memengaruhi pembayaran
 - order obat resep harus sinkron dengan verifikasi resep
+- bukti pembayaran harus tersedia untuk dashboard kasir/admin dan notifikasi terkait
 - stok berkurang atau dikunci sesuai rule order
 - notifikasi status pelanggan berubah
 
@@ -75,10 +76,27 @@ Modul terdampak:
 Dampak:
 
 - order obat resep tidak bisa diproses tanpa logika baru
+- referensi file resep harus valid agar preview/dashboard tidak membuka route yang salah
 - notifikasi apoteker/pelanggan bisa berubah
 - dashboard review resep ikut berubah
 
-### 5. Perubahan pada Auth / Role
+### 5. Perubahan pada Notifications
+
+Modul terdampak:
+
+- `orders`
+- `prescriptions`
+- dashboard internal
+- header pelanggan
+
+Dampak:
+
+- item notifikasi harus membawa target yang dapat dibuka
+- klik item harus menandai notifikasi sebagai sudah dibaca
+- role Admin, Apoteker, Kasir, dan Pelanggan harus melihat daftar sesuai user masing-masing
+- perubahan entity target memengaruhi redirect dari `/notifications/:notificationId/open`
+
+### 6. Perubahan pada Auth / Role
 
 Modul terdampak:
 

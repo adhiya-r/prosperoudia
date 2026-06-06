@@ -1,6 +1,8 @@
 const { hashPassword } = require('../../src/shared/utils/password');
 
 exports.seed = async function seed(knex) {
+  await knex('report_jobs').del();
+  await knex('import_jobs').del();
   await knex('user_roles').del();
   await knex('users').del();
 

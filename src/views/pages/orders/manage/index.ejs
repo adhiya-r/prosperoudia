@@ -1,17 +1,4 @@
-<!DOCTYPE html>
-<html lang="id">
-  <head>
-    <%- include('../../../partials/head') %>
-  </head>
-  <body class="app-page">
-    <main class="dashboard-shell">
-      <%- include('../../../partials/app-header', {
-        eyebrow: 'Operasional',
-        heading: 'Manajemen Order',
-        subtitle: 'Pantau order online, status verifikasi resep, dan progres pembayaran.',
-        showLogout: true
-      }) %>
-      <%- include('../../../partials/app-nav', { currentPath: '/orders/manage' }) %>
+<%- include('../../../partials/backoffice-shell-start', { activePage: 'orders' }) %>
 
       <% if (flashMessage) { %>
         <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
@@ -32,6 +19,7 @@
                     <th>Total</th>
                     <th>Status</th>
                     <th>Pembayaran</th>
+                    <th>Bukti Bayar</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
@@ -46,6 +34,9 @@
                       <td><%= order.total_amount_label %></td>
                       <td><span class="status-pill <%= order.status === 'confirmed' || order.status === 'completed' ? 'status-active' : order.status === 'cancelled' ? 'status-muted' : 'status-warning' %>"><%= order.statusLabel %></span></td>
                       <td><%= order.paymentStatusLabel %></td>
+                      <td>
+                        <span class="status-pill <%= order.hasPaymentProof ? 'status-active' : 'status-warning' %>"><%= order.paymentProofStatusLabel %></span>
+                      </td>
                       <td><a href="/orders/manage/<%= order.id %>" class="button-outline">Buka</a></td>
                     </tr>
                   <% }) %>
@@ -55,6 +46,4 @@
           <% } %>
         </article>
       </section>
-    </main>
-  </body>
-</html>
+<%- include('../../../partials/backoffice-shell-end') %>

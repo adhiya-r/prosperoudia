@@ -7,13 +7,20 @@ const env = require('./config/env');
 const database = require('./config/database');
 const routes = require('./routes');
 const cartService = require('./modules/orders/cartService');
+const notificationService = require('./modules/notifications/notificationService');
 const csrfMiddleware = require('./shared/middlewares/csrfMiddleware');
+const errorLogService = require('./modules/error-logs/errorLogService');
+const { isCustomerUser } = require('./shared/middlewares/authMiddleware');
 
 const app = express();
 const PgSession = pgSessionFactory(session);
+const assetVersion = Date.now();
 
 app.disable('x-powered-by');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', [
+  path.join(__dirname, 'views'),
+  path.join(__dirname, 'dashboard', 'src', 'views')
+]);
 app.set('view engine', 'ejs');
 
 app.use(
@@ -23,7 +30,9 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/dashboard-assets', express.static(path.join(__dirname, 'dashboard', 'public')));
 app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, 'dashboard', 'public')));
 
 const sessionConfig = {
   secret: env.SESSION_SECRET,
@@ -49,10 +58,44 @@ if (env.SESSION_STORE === 'postgres') {
 app.use(session(sessionConfig));
 
 app.use((req, res, next) => {
+  const user = req.session?.user ?? null;
   res.locals.appName = env.APP_NAME;
-  res.locals.currentUser = req.session?.user ?? null;
+  res.locals.currentYear = new Date().getFullYear();
+  res.locals.assetVersion = assetVersion;
+  res.locals.currentUser = user;
+  res.locals.currentRole = user?.primaryRole?.display_name ?? user?.primaryRole?.name ?? user?.role ?? 'User';
   res.locals.cartSummary = cartService.getCartSummary(req.session);
+  res.locals.dashboardPath = isCustomerUser(user) ? '/' : '/dashboard';
+  res.locals.isCustomerUser = user ? isCustomerUser(user) : false;
+  res.locals.dangerActions = [];
   next();
+});
+
+app.use(async (req, res, next) => {
+  const userId = req.session?.user?.id ?? null;
+
+  if (!userId) {
+    res.locals.userNotifications = [];
+    res.locals.userNotificationUnreadCount = 0;
+    return next();
+  }
+
+  try {
+    const [notifications, unreadCount] = await Promise.all([
+      notificationService.listNotificationsForUser(userId, 5),
+      notificationService.countUnreadNotificationsForUser(userId)
+    ]);
+    res.locals.userNotifications = notifications.map((notification) =>
+      notificationService.decorateNotification(notification, req.session?.user ?? {})
+    );
+    res.locals.userNotificationUnreadCount = unreadCount;
+  } catch (error) {
+    console.error(error);
+    res.locals.userNotifications = [];
+    res.locals.userNotificationUnreadCount = 0;
+  }
+
+  return next();
 });
 
 app.use(csrfMiddleware);
@@ -78,6 +121,19 @@ app.use((req, res) => {
 
 app.use((error, req, res, next) => {
   console.error(error);
+
+  Promise.resolve(
+    errorLogService.logError({
+      error,
+      req,
+      severity: error.statusCode && error.statusCode < 500 ? 'warning' : 'critical',
+      metadata: {
+        status_code: error.statusCode ?? 500
+      }
+    })
+  ).catch((loggingError) => {
+    console.error(loggingError);
+  });
 
   return res.status(500).render('pages/error', {
     pageTitle: 'Terjadi Kesalahan',

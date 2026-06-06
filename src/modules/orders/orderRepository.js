@@ -60,6 +60,8 @@ async function listOrders() {
       'o.order_number',
       'o.status',
       'o.payment_status',
+      'o.payment_proof_path',
+      'o.payment_proof_uploaded_at',
       'o.total_amount',
       'o.fulfillment_method',
       'o.placed_at',
@@ -107,6 +109,20 @@ async function updateOrderLifecycle(trx, orderId, payload) {
   return record ?? null;
 }
 
+async function updateOrderPaymentProof(trx, orderId, payload) {
+  const [record] = await trx('orders')
+    .where('id', orderId)
+    .update({
+      payment_proof_path: payload.payment_proof_path,
+      payment_proof_uploaded_at: payload.payment_proof_uploaded_at,
+      payment_status: payload.payment_status,
+      updated_at: trx.fn.now()
+    })
+    .returning(['id', 'order_number', 'payment_status', 'payment_proof_path', 'payment_proof_uploaded_at']);
+
+  return record ?? null;
+}
+
 async function findOrderWithItems(orderId) {
   const order = await database('orders as o')
     .innerJoin('customers as c', 'c.id', 'o.customer_id')
@@ -123,6 +139,8 @@ async function findOrderWithItems(orderId) {
       'o.shipping_amount',
       'o.total_amount',
       'o.notes',
+      'o.payment_proof_path',
+      'o.payment_proof_uploaded_at',
       'o.placed_at',
       'o.confirmed_at',
       'c.full_name as customer_name',
@@ -170,15 +188,69 @@ async function getMedicineStockSummaries() {
     .groupBy('medicine_id');
 }
 
+async function listOrdersByEmail(email) {
+  return database('orders as o')
+    .innerJoin('customers as c', 'c.id', 'o.customer_id')
+    .select(
+      'o.id',
+      'o.order_number',
+      'o.status',
+      'o.payment_status',
+      'o.payment_method',
+      'o.total_amount',
+      'o.fulfillment_method',
+      'o.notes',
+      'o.payment_proof_path',
+      'o.payment_proof_uploaded_at',
+      'o.placed_at',
+      'o.confirmed_at',
+      'o.completed_at',
+      'o.cancelled_at'
+    )
+    .whereRaw('LOWER(c.email) = LOWER(?)', [email])
+    .orderBy('o.created_at', 'desc');
+}
+
+async function findOrderByIdAndEmail(orderId, email) {
+  return database('orders as o')
+    .innerJoin('customers as c', 'c.id', 'o.customer_id')
+    .select(
+      'o.id',
+      'o.order_number',
+      'o.status',
+      'o.payment_status',
+      'o.payment_method',
+      'o.notes',
+      'o.payment_proof_path',
+      'o.payment_proof_uploaded_at',
+      'c.full_name as customer_name',
+      'c.email as customer_email'
+    )
+    .where('o.id', orderId)
+    .whereRaw('LOWER(c.email) = LOWER(?)', [email])
+    .first();
+}
+
+async function findPortalUserByEmail(email, trx = database) {
+  return trx('users')
+    .select('id', 'full_name', 'email')
+    .whereRaw('LOWER(email) = LOWER(?)', [email])
+    .first();
+}
+
 module.exports = {
   findCustomerByEmail,
+  findOrderByIdAndEmail,
   createCustomer,
   updateCustomer,
   createOrder,
   createOrderItems,
+  findPortalUserByEmail,
   listOrders,
+  listOrdersByEmail,
   findOrderWithItems,
   getMedicineStockSummaries,
+  updateOrderPaymentProof,
   updateOrderLifecycle,
   updateOrderStatus
 };

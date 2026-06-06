@@ -1,17 +1,4 @@
-<!DOCTYPE html>
-<html lang="id">
-  <head>
-    <%- include('../../partials/head') %>
-  </head>
-  <body class="app-page">
-    <main class="dashboard-shell">
-      <%- include('../../partials/app-header', {
-        eyebrow: 'Monitoring',
-        heading: 'Kesehatan Sistem',
-        subtitle: monitoringDescription,
-        showLogout: true
-      }) %>
-      <%- include('../../partials/app-nav', { currentPath }) %>
+<%- include('../../partials/backoffice-shell-start', { activePage: 'monitoring-overview' }) %>
 
       <section class="dashboard-metric-grid">
         <% monitoringMetrics.forEach((metric) => { %>
@@ -63,6 +50,4 @@
           </div>
         </article>
       </section>
-    </main>
-  </body>
-</html>
+<%- include('../../partials/backoffice-shell-end') %>

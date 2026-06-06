@@ -1,6 +1,7 @@
 const database = require('../../config/database');
 const inventoryService = require('../inventory/inventoryService');
 const orderRepository = require('./orderRepository');
+const { hasOpenableFileReference, normalizeFileReference } = require('../../shared/utils/fileReference');
 
 const ORDER_STATUS_OPTIONS = [
   { value: 'pending_verification', label: 'Menunggu Verifikasi Resep' },
@@ -22,6 +23,20 @@ function formatCurrencyIDR(value) {
     currency: 'IDR',
     maximumFractionDigits: 0
   }).format(Number(value ?? 0));
+}
+
+function formatDateTimeID(date) {
+  if (!date) {
+    return '-';
+  }
+
+  return new Date(date).toLocaleString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 function toStatusLabel(status) {
@@ -89,9 +104,12 @@ async function listOrders() {
 
   return orders.map((order) => ({
     ...order,
+    payment_proof_path: normalizeFileReference(order.payment_proof_path),
     total_amount_label: formatCurrencyIDR(order.total_amount),
     statusLabel: toStatusLabel(order.status),
-    paymentStatusLabel: toPaymentStatusLabel(order.payment_status)
+    paymentStatusLabel: toPaymentStatusLabel(order.payment_status),
+    hasPaymentProof: hasOpenableFileReference(order.payment_proof_path),
+    paymentProofStatusLabel: hasOpenableFileReference(order.payment_proof_path) ? 'Sudah Upload' : 'Belum Upload'
   }));
 }
 
@@ -106,10 +124,13 @@ async function getOrderDetail(orderId) {
 
   return {
     ...order,
+    payment_proof_path: normalizeFileReference(order.payment_proof_path),
     statusLabel: toStatusLabel(order.status),
     paymentStatusLabel: toPaymentStatusLabel(order.payment_status),
     totalAmountLabel: formatCurrencyIDR(order.total_amount),
     subtotalAmountLabel: formatCurrencyIDR(order.subtotal_amount),
+    paymentProofUploadedAtLabel: formatDateTimeID(order.payment_proof_uploaded_at),
+    hasPaymentProof: hasOpenableFileReference(order.payment_proof_path),
     items: order.items.map((item) => ({
       ...item,
       totalPriceLabel: formatCurrencyIDR(item.total_price),
@@ -118,6 +139,8 @@ async function getOrderDetail(orderId) {
     prescription: order.prescription
       ? {
           ...order.prescription,
+          image_path: normalizeFileReference(order.prescription.image_path),
+          hasOpenableFile: hasOpenableFileReference(order.prescription.image_path),
           statusLabel: {
             pending: 'Menunggu review apoteker',
             approved: 'Disetujui',
@@ -145,6 +168,12 @@ async function updateOrderStatus(orderId, payload, actorUser) {
     throw error;
   }
 
+  const previousState = {
+    status: order.status,
+    payment_status: order.payment_status,
+    notes: order.notes
+  };
+
   await database.transaction(async (trx) => {
     if (validation.value.status === 'completed' && order.status !== 'completed') {
       await inventoryService.allocateOrderStock(trx, order, actorUser?.id ?? null);
@@ -153,8 +182,39 @@ async function updateOrderStatus(orderId, payload, actorUser) {
     await orderRepository.updateOrderLifecycle(trx, orderId, validation.value);
   });
 
+  const customerUser = order.customer_email
+    ? await orderRepository.findPortalUserByEmail(order.customer_email)
+    : null;
+
   return {
-    ok: true
+    ok: true,
+    order: {
+      id: order.id,
+      order_number: order.order_number,
+      customer_email: order.customer_email,
+      customer_user_id: customerUser?.id ?? null
+    },
+    previous: previousState,
+    updated: validation.value
+  };
+}
+
+async function getReminderContext(orderId) {
+  const order = await orderRepository.findOrderWithItems(orderId);
+
+  if (!order) {
+    const error = new Error('Order tidak ditemukan.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const customerUser = order.customer_email
+    ? await orderRepository.findPortalUserByEmail(order.customer_email)
+    : null;
+
+  return {
+    order,
+    customerUser
   };
 }
 
@@ -171,6 +231,7 @@ module.exports = {
   getOrderStatusOptions,
   getPaymentStatusOptions,
   listOrders,
+  getReminderContext,
   updateOrderStatus,
   validateOrderStatusPayload
 };

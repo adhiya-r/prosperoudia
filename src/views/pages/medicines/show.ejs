@@ -4,67 +4,7 @@
     <%- include('../../partials/head') %>
   </head>
   <body class="home-page storefront-page">
-    <header class="storefront-header">
-      <div class="storefront-header__main">
-        <a href="/" class="brand-logo" aria-label="Prosperoudia">
-          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" />
-        </a>
-
-        <div class="storefront-actions">
-          <div class="cart-preview">
-            <a href="/cart" class="cart-link cart-link-icon-only" aria-label="Lihat keranjang belanja">
-              <span class="cart-link__icon">🛒</span>
-              <% if (cartSummary.totalQuantity > 0) { %>
-                <span class="cart-link__count"><%= cartSummary.totalQuantity %></span>
-              <% } %>
-            </a>
-            <div class="cart-preview__panel">
-              <% if (cartSummary.isEmpty) { %>
-                <div class="cart-preview__empty">
-                  <strong>Keranjang belanjamu kosong</strong>
-                  <p>Yuk, isi dengan obat dan kebutuhan kesehatan harian.</p>
-                  <a href="/" class="button-outline button-outline-block">Mulai Belanja</a>
-                </div>
-              <% } else { %>
-                <div class="cart-preview__items">
-                  <% cartSummary.previewItems.forEach((item) => { %>
-                    <article class="cart-preview__item">
-                      <div>
-                        <strong><%= item.name %></strong>
-                        <span><%= item.quantity %> x <%= item.unit_price_label %></span>
-                      </div>
-                      <span><%= item.line_total_label %></span>
-                    </article>
-                  <% }) %>
-                </div>
-                <div class="cart-preview__footer">
-                  <strong>Total <%= cartSummary.totalAmountLabel %></strong>
-                  <a href="/cart">Lihat semua</a>
-                </div>
-              <% } %>
-            </div>
-          </div>
-          <% if (!currentUser) { %>
-            <button type="button" class="storefront-login" data-open-login>Masuk</button>
-            <a href="/register" class="button-ghost">Daftar</a>
-          <% } else { %>
-            <details class="profile-menu">
-              <summary class="profile-menu__trigger">
-                <span class="profile-avatar"><%= currentUser.full_name.charAt(0).toUpperCase() %></span>
-                <span class="profile-name"><%= currentUser.full_name %></span>
-              </summary>
-              <div class="profile-menu__panel">
-                <a href="/dashboard">Dashboard</a>
-                <form action="/logout" method="post">
-                  <%- include('../../partials/csrf-field') %>
-                  <button type="submit">Logout</button>
-                </form>
-              </div>
-            </details>
-          <% } %>
-        </div>
-      </div>
-    </header>
+    <%- include('../../partials/storefront-header') %>
 
     <main class="storefront-shell">
       <nav class="storefront-breadcrumb" aria-label="Breadcrumb">
@@ -115,7 +55,7 @@
           </article>
 
           <article class="panel-card">
-            <h2>Informasi Produk</h2>
+            <h2>Informasi Farmasi</h2>
             <dl class="detail-list">
               <div>
                 <dt>Komposisi</dt>
@@ -162,12 +102,12 @@
 
           <label class="field">
             <span>Email atau Username</span>
-            <input type="text" name="identifier" placeholder="contoh: admin atau email@contoh.com" autocomplete="username" />
+            <input type="text" name="identifier" placeholder="Email atau username" autocomplete="username" />
           </label>
           <label class="field">
             <span>Password</span>
             <div class="password-field">
-              <input type="password" name="password" placeholder="Masukkan password" autocomplete="current-password" data-password-input />
+              <input type="password" name="password" placeholder="Password" autocomplete="current-password" data-password-input />
               <button type="button" class="password-toggle" data-password-toggle>Lihat</button>
             </div>
           </label>
@@ -175,11 +115,15 @@
         </form>
         <div class="auth-divider"><span>atau</span></div>
         <div class="placeholder-stack">
-          <button type="button" class="button-outline button-outline-block" disabled>Masuk dengan Google</button>
+          <a href="/auth/google" class="button-outline button-outline-block" style="display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;">
+            <i class="fa-brands fa-google"></i>
+            Masuk dengan Google
+          </a>
         </div>
       </section>
     </div>
 
+    <script src="/dashboard-assets/js/ui.js" defer></script>
     <script src="/js/home.js"></script>
   </body>
 </html>

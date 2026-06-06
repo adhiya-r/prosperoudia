@@ -1,52 +1,80 @@
-<!DOCTYPE html>
-<html lang="id">
-  <head>
-    <%- include('../../partials/head') %>
-  </head>
-  <body class="app-page">
-    <main class="dashboard-shell">
-      <%- include('../../partials/app-header', {
-        eyebrow: 'Apoteker',
-        heading: `Review Resep ${prescription.order_number}`,
-        subtitle: 'Setujui atau tolak resep sebelum pesanan diproses lebih lanjut.',
-        showLogout: true
-      }) %>
-      <%- include('../../partials/app-nav', { currentPath: '/prescriptions/review' }) %>
+<%- include('../../partials/backoffice-shell-start', { activePage: 'prescriptions' }) %>
+
+      <%
+        const prescriptionFilePath = prescription.image_path || '';
+        const prescriptionIsPdf = /\.pdf($|\?)/i.test(prescriptionFilePath);
+        const prescriptionIsImage = /\.(jpg|jpeg|png|webp|gif)($|\?)/i.test(prescriptionFilePath);
+        const prescriptionPaymentProofPath = prescription.payment_proof_path || '';
+        const prescriptionPaymentProofIsPdf = /\.pdf($|\?)/i.test(prescriptionPaymentProofPath);
+        const prescriptionPaymentProofIsImage = /\.(jpg|jpeg|png|webp|gif)($|\?)/i.test(prescriptionPaymentProofPath);
+      %>
 
       <% if (flashMessage) { %>
         <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
       <% } %>
 
-      <section class="panel-grid panel-grid-wide">
-        <article class="panel-card">
-          <h2>Data Resep</h2>
-          <dl class="detail-list">
-            <div>
-              <dt>Pelanggan</dt>
-              <dd><%= prescription.customer_name %></dd>
-            </div>
-            <div>
-              <dt>Email</dt>
-              <dd><%= prescription.customer_email %></dd>
-            </div>
-            <div>
-              <dt>Dokter</dt>
-              <dd><%= prescription.doctor_name %></dd>
-            </div>
-            <div>
-              <dt>No. Resep</dt>
-              <dd><%= prescription.prescription_number || '-' %></dd>
-            </div>
-            <div>
-              <dt>Referensi Resep</dt>
-              <dd><a href="<%= prescription.image_path %>" target="_blank" rel="noreferrer"><%= prescription.image_path %></a></dd>
-            </div>
-            <div>
-              <dt>Total Pesanan</dt>
-              <dd><strong><%= prescription.total_amount_label %></strong></dd>
-            </div>
-          </dl>
+      <section class="panel-grid approval-layout">
+        <article class="panel-card approval-card">
+          <h2>Preview Resep & Order</h2>
+          <div class="button-row" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+            <% if (prescription.hasOpenablePrescriptionFile) { %>
+              <a href="<%= prescriptionFilePath %>" target="_blank" rel="noreferrer" class="button-primary">
+                <i class="fa-solid fa-file-prescription"></i> Lihat File Resep
+              </a>
+            <% } else { %>
+              <span class="button-outline" style="opacity:0.65;pointer-events:none;">
+                <i class="fa-solid fa-file-prescription"></i> File Resep Tidak Valid
+              </span>
+            <% } %>
+            <a href="/orders/manage/<%= prescription.order_id %>" class="button-outline">
+              <i class="fa-solid fa-receipt"></i> Buka Order Terkait
+            </a>
+            <% if (prescription.hasPaymentProof) { %>
+              <a href="<%= prescription.payment_proof_path %>" target="_blank" rel="noreferrer" class="button-outline">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Lihat Bukti Pembayaran
+              </a>
+            <% } %>
+          </div>
 
+          <div class="form-section-divider"></div>
+          <h3>Preview Resep</h3>
+          <div class="file-preview-card">
+            <div class="file-preview-card__header">
+              <strong>File Resep</strong>
+              <% if (prescription.hasOpenablePrescriptionFile) { %>
+                <a href="<%= prescriptionFilePath %>" target="_blank" rel="noreferrer" class="button-outline">Buka File Penuh</a>
+              <% } %>
+            </div>
+            <% if (!prescription.hasOpenablePrescriptionFile) { %>
+              <p class="subtitle">File resep pada order ini tidak memiliki path yang valid. Minta pelanggan unggah ulang jika perlu.</p>
+            <% } else if (prescriptionIsImage) { %>
+              <img class="file-preview-card__image" src="<%= prescriptionFilePath %>" alt="Preview resep order <%= prescription.order_number %>" />
+            <% } else if (prescriptionIsPdf) { %>
+              <iframe class="file-preview-card__frame" src="<%= prescriptionFilePath %>" title="Preview resep order <%= prescription.order_number %>"></iframe>
+            <% } else { %>
+              <p class="subtitle">Preview inline belum tersedia untuk tipe file ini. Gunakan tombol buka file penuh.</p>
+            <% } %>
+          </div>
+
+          <% if (prescription.hasPaymentProof) { %>
+            <div class="form-section-divider"></div>
+            <h3>Preview Bukti Pembayaran</h3>
+            <div class="file-preview-card">
+              <div class="file-preview-card__header">
+                <strong>Bukti Pembayaran Terkait</strong>
+                <a href="<%= prescriptionPaymentProofPath %>" target="_blank" rel="noreferrer" class="button-outline">Buka File Penuh</a>
+              </div>
+              <% if (prescriptionPaymentProofIsImage) { %>
+                <img class="file-preview-card__image" src="<%= prescriptionPaymentProofPath %>" alt="Preview bukti pembayaran order <%= prescription.order_number %>" />
+              <% } else if (prescriptionPaymentProofIsPdf) { %>
+                <iframe class="file-preview-card__frame" src="<%= prescriptionPaymentProofPath %>" title="Preview bukti pembayaran order <%= prescription.order_number %>"></iframe>
+              <% } else { %>
+                <p class="subtitle">Preview inline belum tersedia untuk tipe file ini. Gunakan tombol buka file penuh.</p>
+              <% } %>
+            </div>
+          <% } %>
+
+          <div class="form-section-divider"></div>
           <h3>Item Terkait</h3>
           <div class="cart-list cart-list-compact">
             <% prescription.items.forEach((item) => { %>
@@ -63,36 +91,107 @@
           </div>
         </article>
 
-        <article class="panel-card">
-          <h2>Keputusan Review</h2>
-          <form action="/prescriptions/<%= prescription.id %>/review" method="post" class="auth-form">
-            <%- include('../../partials/csrf-field') %>
-            <label class="field">
-              <span>Keputusan</span>
-              <select name="decision">
-                <option value="">Pilih keputusan</option>
-                <option value="approved" <%= formValues.decision === 'approved' ? 'selected' : '' %>>Setujui Resep</option>
-                <option value="rejected" <%= formValues.decision === 'rejected' ? 'selected' : '' %>>Tolak Resep</option>
-              </select>
-              <% if (formErrors.decision) { %><small class="field-error"><%= formErrors.decision %></small><% } %>
-            </label>
+        <div class="approval-sidebar">
+          <article class="panel-card approval-card">
+            <h2>Ringkasan Resep</h2>
+            <div class="button-row" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+              <% if (prescription.hasOpenablePrescriptionFile) { %>
+                <a href="<%= prescriptionFilePath %>" target="_blank" rel="noreferrer" class="button-primary">
+                  <i class="fa-solid fa-file-prescription"></i> Lihat File Resep
+                </a>
+              <% } else { %>
+                <span class="button-outline" style="opacity:0.65;pointer-events:none;">
+                  <i class="fa-solid fa-file-prescription"></i> File Resep Tidak Valid
+                </span>
+              <% } %>
+              <a href="/orders/manage/<%= prescription.order_id %>" class="button-outline">
+                <i class="fa-solid fa-receipt"></i> Buka Order Terkait
+              </a>
+              <% if (prescription.hasPaymentProof) { %>
+                <a href="<%= prescription.payment_proof_path %>" target="_blank" rel="noreferrer" class="button-outline">
+                  <i class="fa-solid fa-file-invoice-dollar"></i> Lihat Bukti Pembayaran
+                </a>
+              <% } %>
+            </div>
+            <dl class="detail-list">
+              <div>
+                <dt>Pelanggan</dt>
+                <dd><%= prescription.customer_name %></dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd><%= prescription.customer_email %></dd>
+              </div>
+              <div>
+                <dt>Dokter</dt>
+                <dd><%= prescription.doctor_name %></dd>
+              </div>
+              <div>
+                <dt>No. Resep</dt>
+                <dd><%= prescription.prescription_number || '-' %></dd>
+              </div>
+              <div>
+                <dt>Order Terkait</dt>
+                <dd><a href="/orders/manage/<%= prescription.order_id %>"><%= prescription.order_number %></a></dd>
+              </div>
+              <div>
+                <dt>Bukti Pembayaran</dt>
+                <dd>
+                  <% if (prescription.hasPaymentProof) { %>
+                    <a href="<%= prescriptionPaymentProofPath %>" target="_blank" rel="noreferrer">Buka bukti pembayaran</a>
+                    <small style="display:block;color:var(--muted);margin-top:4px;">Diunggah <%= prescription.paymentProofUploadedAtLabel %></small>
+                  <% } else { %>
+                    <span>Belum diunggah pelanggan</span>
+                  <% } %>
+                </dd>
+              </div>
+              <div>
+                <dt>Total Pesanan</dt>
+                <dd><strong><%= prescription.total_amount_label %></strong></dd>
+              </div>
+            </dl>
+          </article>
 
-            <label class="field">
-              <span>Catatan Review</span>
-              <textarea name="reviewed_notes" rows="4" placeholder="Catatan apoteker untuk review resep"><%= formValues.reviewed_notes || '' %></textarea>
-              <% if (formErrors.reviewed_notes) { %><small class="field-error"><%= formErrors.reviewed_notes %></small><% } %>
-            </label>
+          <article class="panel-card approval-card approval-card--sticky">
+            <h2>Keputusan Review</h2>
+            <% if (prescription.hasPaymentProof) { %>
+              <div class="approval-note">
+                <strong>Bukti pembayaran sudah tersedia.</strong>
+                <span>Checklist file resep dan bukti bayar sebelum approve atau reject.</span>
+              </div>
+            <% } else { %>
+              <div class="approval-note approval-note--warning">
+                <strong>Bukti pembayaran belum tersedia.</strong>
+                <span>Jika resep disetujui, kasir masih perlu menunggu bukti dari pelanggan.</span>
+              </div>
+            <% } %>
+            <form action="/prescriptions/<%= prescription.id %>/review" method="post" class="auth-form">
+              <%- include('../../partials/csrf-field') %>
+              <label class="field">
+                <span>Keputusan</span>
+                <select name="decision">
+                  <option value="">Pilih keputusan</option>
+                  <option value="approved" <%= formValues.decision === 'approved' ? 'selected' : '' %>>Setujui Resep</option>
+                  <option value="rejected" <%= formValues.decision === 'rejected' ? 'selected' : '' %>>Tolak Resep</option>
+                </select>
+                <% if (formErrors.decision) { %><small class="field-error"><%= formErrors.decision %></small><% } %>
+              </label>
 
-            <label class="field">
-              <span>Alasan Penolakan</span>
-              <textarea name="rejection_reason" rows="4" placeholder="Wajib diisi jika resep ditolak"><%= formValues.rejection_reason || '' %></textarea>
-              <% if (formErrors.rejection_reason) { %><small class="field-error"><%= formErrors.rejection_reason %></small><% } %>
-            </label>
+              <label class="field">
+                <span>Catatan Review</span>
+                <textarea name="reviewed_notes" rows="4" placeholder="Catatan apoteker untuk review resep"><%= formValues.reviewed_notes || '' %></textarea>
+                <% if (formErrors.reviewed_notes) { %><small class="field-error"><%= formErrors.reviewed_notes %></small><% } %>
+              </label>
 
-            <button type="submit" class="button-primary">Simpan Keputusan</button>
-          </form>
-        </article>
+              <label class="field">
+                <span>Alasan Penolakan</span>
+                <textarea name="rejection_reason" rows="4" placeholder="Wajib diisi jika resep ditolak"><%= formValues.rejection_reason || '' %></textarea>
+                <% if (formErrors.rejection_reason) { %><small class="field-error"><%= formErrors.rejection_reason %></small><% } %>
+              </label>
+
+              <button type="submit" class="button-primary">Simpan Keputusan</button>
+            </form>
+          </article>
+        </div>
       </section>
-    </main>
-  </body>
-</html>
+<%- include('../../partials/backoffice-shell-end') %>

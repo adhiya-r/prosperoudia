@@ -180,6 +180,32 @@ Alasan:
 - langsung menguji perilaku route dan response
 - cocok untuk bukti pengujian asesmen
 
+### multer, exceljs, dan pdfkit
+
+Fungsi:
+
+- `multer` menangani upload gambar, resep, bukti pembayaran, avatar, dan spreadsheet
+- `exceljs` membaca import XLSX
+- `pdfkit` membuat laporan PDF visual
+
+Alasan:
+
+- langsung memenuhi kebutuhan multimedia, import spreadsheet, dan export PDF
+
+Catatan:
+
+- import dan report saat ini masih synchronous walaupun lifecycle-nya dicatat sebagai job
+
+### node:crypto scrypt
+
+Fungsi:
+
+- hashing dan verifikasi password tanpa dependency tambahan
+
+Trade-off:
+
+- aman untuk prototype, tetapi teks studi kasus menyebut bcrypt/Argon2 sehingga implementasi perlu diganti atau dijelaskan sebagai deviasi
+
 ## Alasan Tidak Memilih Framework Lain
 
 ### Laravel

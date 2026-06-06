@@ -233,6 +233,75 @@ async function getMedicineDetail(id) {
   };
 }
 
+async function getMedicineById(id) {
+  const medicine = await medicineRepository.findById(id);
+  if (!medicine) {
+    const error = new Error('Obat tidak ditemukan.');
+    error.statusCode = 404;
+    throw error;
+  }
+  return medicine;
+}
+
+async function updateMedicine(id, payload) {
+  // Pastikan obat ada
+  await getMedicineById(id);
+
+  // Periksa keunikan SKU jika diubah
+  const existingMedicine = await medicineRepository.findBySku(payload.sku);
+  if (existingMedicine && String(existingMedicine.id) !== String(id)) {
+    const error = new Error('SKU obat sudah digunakan.');
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const [categoryOptions, supplierOptions] = await Promise.all([
+    categoryRepository.listCategories(),
+    supplierRepository.listSuppliers()
+  ]);
+
+  const categoryExists = categoryOptions.some((category) => Number(category.id) === Number(payload.category_id));
+  if (!categoryExists) {
+    const error = new Error('Kategori obat tidak ditemukan.');
+    error.statusCode = 422;
+    throw error;
+  }
+
+  const supplierExists = supplierOptions.some((supplier) => Number(supplier.id) === Number(payload.supplier_id));
+  if (!supplierExists) {
+    const error = new Error('Supplier obat tidak ditemukan.');
+    error.statusCode = 422;
+    throw error;
+  }
+
+  return medicineRepository.updateById(id, payload);
+}
+
+async function deactivateMedicine(id) {
+  await getMedicineById(id);
+  return medicineRepository.deactivateById(id);
+}
+
+async function activateMedicine(id) {
+  await getMedicineById(id);
+  return medicineRepository.activateById(id);
+}
+
+async function deleteMedicine(id) {
+  await getMedicineById(id);
+
+  const usage = await medicineRepository.countUsage(id);
+  const hasUsage = usage.orderItems > 0 || usage.inventoryBatches > 0 || usage.prescriptionItems > 0 || usage.stockMovements > 0;
+
+  if (hasUsage) {
+    const error = new Error('Obat tidak bisa dihapus karena telah digunakan dalam transaksi atau stok.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return medicineRepository.deleteById(id);
+}
+
 module.exports = {
   listMedicines,
   listMedicineOptions,
@@ -240,5 +309,10 @@ module.exports = {
   listFeaturedMedicines,
   listCategoryHighlights,
   listSearchSuggestions,
-  getMedicineDetail
+  getMedicineDetail,
+  getMedicineById,
+  updateMedicine,
+  deactivateMedicine,
+  activateMedicine,
+  deleteMedicine
 };

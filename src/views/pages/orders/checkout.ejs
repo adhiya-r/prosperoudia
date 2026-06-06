@@ -4,54 +4,7 @@
     <%- include('../../partials/head') %>
   </head>
   <body class="home-page storefront-page">
-    <header class="storefront-header">
-      <div class="storefront-header__main">
-        <a href="/" class="brand-logo" aria-label="Prosperoudia">
-          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" />
-        </a>
-
-        <div class="storefront-actions">
-          <div class="cart-preview">
-            <a href="/cart" class="cart-link cart-link-icon-only" aria-label="Lihat keranjang belanja">
-              <span class="cart-link__icon">🛒</span>
-              <% if (cart.totalQuantity > 0) { %>
-                <span class="cart-link__count"><%= cart.totalQuantity %></span>
-              <% } %>
-            </a>
-            <div class="cart-preview__panel">
-              <div class="cart-preview__items">
-                <% cart.previewItems.forEach((item) => { %>
-                  <article class="cart-preview__item">
-                    <div>
-                      <strong><%= item.name %></strong>
-                      <span><%= item.quantity %> x <%= item.unit_price_label %></span>
-                    </div>
-                    <span><%= item.line_total_label %></span>
-                  </article>
-                <% }) %>
-              </div>
-              <div class="cart-preview__footer">
-                <strong>Total <%= cart.totalAmountLabel %></strong>
-                <a href="/cart">Lihat semua</a>
-              </div>
-            </div>
-          </div>
-          <details class="profile-menu">
-            <summary class="profile-menu__trigger">
-              <span class="profile-avatar"><%= currentUser.full_name.charAt(0).toUpperCase() %></span>
-              <span class="profile-name"><%= currentUser.full_name %></span>
-            </summary>
-            <div class="profile-menu__panel">
-              <a href="/dashboard">Dashboard</a>
-              <form action="/logout" method="post">
-                <%- include('../../partials/csrf-field') %>
-                <button type="submit">Logout</button>
-              </form>
-            </div>
-          </details>
-        </div>
-      </div>
-    </header>
+    <%- include('../../partials/storefront-header') %>
 
     <main class="storefront-shell">
       <% if (flashMessage) { %>
@@ -130,6 +83,22 @@
               <textarea name="notes" rows="3" placeholder="Catatan tambahan jika diperlukan"><%= formValues.notes || '' %></textarea>
             </label>
 
+            <div class="form-section-divider"></div>
+            <h2 class="form-section-title">Bukti pembayaran</h2>
+
+            <label class="field">
+              <span>Upload Bukti Pembayaran</span>
+              <input type="file" name="payment_proof" accept=".jpg,.jpeg,.png,.webp,.pdf" />
+              <small class="subtitle">Opsional. Unggah SS transfer, bukti QRIS, atau PDF agar kasir bisa langsung verifikasi setelah order diproses.</small>
+            </label>
+
+            <% if (formValues.payment_proof_path) { %>
+              <label class="field">
+                <span>File Bukti Saat Ini</span>
+                <input type="text" name="payment_proof_path" value="<%= formValues.payment_proof_path %>" readonly />
+              </label>
+            <% } %>
+
             <% if (requiresPrescription) { %>
               <div class="form-section-divider"></div>
               <h2 class="form-section-title">Data resep</h2>
@@ -191,5 +160,6 @@
         </aside>
       </section>
     </main>
+    <script src="/dashboard-assets/js/ui.js" defer></script>
   </body>
 </html>

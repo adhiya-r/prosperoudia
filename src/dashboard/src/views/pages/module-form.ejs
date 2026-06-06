@@ -1,0 +1,216 @@
+<%- include('../partials/head', { pageTitle }) %>
+
+<div class="app-shell">
+  <%- include('../partials/sidebar', { activePage: moduleSlug }) %>
+
+  <div class="main-column">
+    <%- include('../partials/topbar', { pageTitle }) %>
+
+    <main class="page-content">
+      <section class="module-pagebar">
+        <div class="module-pagebar__copy">
+          <p class="eyebrow"><%= moduleStatus %></p>
+          <p class="module-pagebar__text"><%= moduleDescription %></p>
+        </div>
+        <div class="module-pagebar__actions">
+          <a class="btn btn-secondary" href="/<%= moduleSlug %>" data-i18n="module.back_to_list">Kembali ke Daftar</a>
+          <a class="btn btn-secondary" href="/dashboard" data-i18n="module.go_dashboard">Dashboard</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title"><%= submitLabel %></h2>
+            <p class="panel__subtext" data-i18n="module.form_hint">Isi data yang dibutuhkan lalu simpan perubahan.</p>
+          </div>
+          <span class="badge badge--neutral" data-i18n="module.form_badge"><%= panelBadge || 'Form' %></span>
+        </div>
+
+        <% if (flashMessage) { %>
+          <div class="alert alert--<%= flashType || 'info' %> form-alert">
+            <strong><%= flashMessage %></strong>
+          </div>
+        <% } %>
+
+        <% if (formErrors && Object.keys(formErrors).length) { %>
+          <div class="alert alert--danger form-alert">
+            <strong data-i18n="module.validation_failed">Validasi gagal</strong>
+            <% if (errorSummary && errorSummary.length) { %>
+              <ul class="error-list">
+                <% errorSummary.forEach(function(error) { %>
+                  <li><%= error %></li>
+                <% }) %>
+              </ul>
+            <% } %>
+          </div>
+        <% } %>
+
+        <% const hasFileField = fields.some(function(field) { return field.type === 'file'; }); %>
+        <form
+          class="form form-page"
+          action="<%=
+            hasFileField && csrfToken
+              ? `${formAction}${String(formAction).includes('?') ? '&' : '?'}csrfToken=${encodeURIComponent(csrfToken)}`
+              : formAction
+          %>"
+          method="<%= formMethod %>"
+          <% if (hasFileField) { %>enctype="multipart/form-data"<% } %>>
+          <% if (csrfToken) { %>
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+          <% } %>
+          <div class="form-helper-strip">
+            <p data-i18n="module.helper_notes">Catatan singkat</p>
+            <div class="inline-badges">
+              <% helperNotes.forEach(function(note) { %>
+                <span class="badge badge--info"><%= note %></span>
+              <% }) %>
+            </div>
+          </div>
+
+          <% const imageField = fields.find(function(field) { return field.name === 'product_image'; }); %>
+          <% if (imageField) { %>
+            <section class="product-preview-card" data-image-preview-card>
+              <button class="product-preview-card__media" type="button" data-image-preview-open aria-label="Lihat gambar lebih besar">
+                <img
+                  class="product-preview-card__image is-hidden"
+                  src="<%= imagePreviewSrc || '' %>"
+                  alt="Preview product image"
+                  data-image-preview-image>
+                <div class="product-preview-card__placeholder" data-image-preview-placeholder>
+                  <span>SS</span>
+                </div>
+              </button>
+              <div class="product-preview-card__copy">
+                <p class="product-preview-card__eyebrow" data-i18n="module.preview">Preview</p>
+                <h3 data-i18n="module.product_image">Product Image</h3>
+                <p data-image-preview-text data-i18n="module.preview_empty">
+                  Belum ada gambar produk. Pilih file untuk melihat preview.
+                </p>
+                <span class="product-preview-card__hint" data-i18n="module.preview_hint">Klik preview untuk memperbesar.</span>
+              </div>
+            </section>
+          <% } %>
+
+          <div class="form-grid">
+            <% fields.forEach(function(field) { %>
+              <div class="form-group <%= field.type === 'textarea' ? 'form-group--full' : '' %>">
+                <label class="form-label" for="<%= field.name %>">
+                  <%= field.label %>
+                  <% if (field.required) { %><span aria-hidden="true">*</span><% } %>
+                </label>
+
+                <% if (field.type === 'textarea') { %>
+                  <textarea
+                    class="form-textarea <%= field.error ? 'form-control--invalid' : '' %>"
+                    id="<%= field.name %>"
+                    name="<%= field.name %>"
+                    placeholder="<%= field.placeholder || '' %>"
+                    aria-invalid="<%= field.error ? 'true' : 'false' %>"
+                    <%= field.required ? 'required' : '' %>><%= field.value || '' %></textarea>
+                <% } else if (field.type === 'select') { %>
+                  <select
+                    class="form-select <%= field.error ? 'form-control--invalid' : '' %>"
+                    id="<%= field.name %>"
+                    name="<%= field.name %>"
+                    aria-invalid="<%= field.error ? 'true' : 'false' %>"
+                    <% if (field.dataAttributes) { Object.entries(field.dataAttributes).forEach(function(entry) { %>data-<%= entry[0].replace(/[A-Z]/g, function(match) { return '-' + match.toLowerCase(); }) %>="<%= entry[1] %>" <% }) } %>
+                    <%= field.required ? 'required' : '' %>>
+                    <% field.options.forEach(function(option) { %>
+                      <option value="<%= option.value %>" <%= String(field.value || '') === String(option.value) ? 'selected' : '' %>>
+                        <%= option.label %>
+                      </option>
+                    <% }) %>
+                  </select>
+                <% } else if (field.type === 'file') { %>
+                  <input
+                    class="form-input <%= field.error ? 'form-control--invalid' : '' %>"
+                    id="<%= field.name %>"
+                    name="<%= field.name %>"
+                    type="file"
+                    <% if (field.accept) { %>accept="<%= field.accept %>"<% } %>
+                    <%= field.name === 'product_image' ? 'data-image-preview-input' : '' %>
+                    aria-invalid="<%= field.error ? 'true' : 'false' %>"
+                    <%= field.required ? 'required' : '' %>>
+                  <% if (field.error) { %>
+                    <p class="field-error"><%= field.error %></p>
+                  <% } else if (field.helpText) { %>
+                    <p class="form-help"><%= field.helpText %></p>
+                  <% } else if (field.name === 'product_image') { %>
+                    <p class="form-help">Format gambar umum didukung. Ukuran file maksimal 2 MB.</p>
+                  <% } %>
+                <% } else { %>
+                  <input
+                    class="form-input <%= field.error ? 'form-control--invalid' : '' %>"
+                    id="<%= field.name %>"
+                    name="<%= field.name %>"
+                    type="<%= field.type %>"
+                    value="<%= field.value || '' %>"
+                    placeholder="<%= field.placeholder || '' %>"
+                    <%= field.name === 'product_image' ? 'data-image-preview-input' : '' %>
+                    aria-invalid="<%= field.error ? 'true' : 'false' %>"
+                    <%= field.readOnly ? 'readonly' : '' %>
+                    <%= field.required ? 'required' : '' %>>
+                <% } %>
+
+                <% if (field.error) { %>
+                  <p class="field-error"><%= field.error %></p>
+                <% } else if (field.helpText) { %>
+                  <p class="form-help"><%= field.helpText %></p>
+                <% } %>
+              </div>
+            <% }) %>
+          </div>
+
+          <div class="module-toolbar">
+            <div class="module-toolbar__actions">
+              <% if (typeof downloadTemplatePath !== 'undefined' && downloadTemplatePath) { %>
+                <a class="btn btn-secondary" href="<%= downloadTemplatePath %>" target="_blank" rel="noopener" data-i18n="module.download_template">
+                  <%= typeof downloadTemplateLabel !== 'undefined' && downloadTemplateLabel ? downloadTemplateLabel : 'Download Template' %>
+                </a>
+              <% } %>
+              <button class="btn btn-primary" type="submit"><%= submitLabel %></button>
+              <a class="btn btn-secondary" href="/<%= moduleSlug %>" data-i18n="module.cancel">Batal</a>
+            </div>
+          </div>
+
+          <% if (dangerActions && dangerActions.length) { %>
+            <div class="form-danger-zone">
+              <p class="form-danger-zone__label" data-i18n="module.data_actions">Aksi data</p>
+              <div class="form-danger-zone__actions">
+                <% dangerActions.forEach(function(action) { %>
+                  <form action="<%= action.action %>" method="post">
+                    <% if (csrfToken) { %>
+                      <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                    <% } %>
+                    <button
+                      class="btn <%= action.variant === 'secondary' ? 'btn-secondary' : 'btn-danger' %>"
+                      type="submit"
+                      <%= action.confirmMessage ? `onclick='return confirm(${JSON.stringify(action.confirmMessage)})'` : '' %>>
+                      <%= action.label %>
+                    </button>
+                  </form>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+        </form>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="image-preview-modal is-hidden" data-image-preview-modal aria-hidden="true">
+  <div class="image-preview-modal__panel" role="dialog" aria-modal="true" aria-label="Product image preview">
+    <button class="image-preview-modal__close" type="button" data-image-preview-close aria-label="Tutup preview">✕</button>
+    <img class="image-preview-modal__image" src="" alt="Product image preview besar" data-image-preview-modal-image>
+  </div>
+</div>
+
+<% if (typeof formContext !== 'undefined' && formContext) { %>
+  <script
+    id="module-form-context"
+    type="application/json"><%- JSON.stringify(formContext).replace(/</g, '\\u003c') %></script>
+<% } %>
+
+<%- include('../partials/footer') %>

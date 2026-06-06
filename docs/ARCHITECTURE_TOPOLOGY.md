@@ -46,7 +46,7 @@ Pelanggan / Browser Publik
           v                      v
  PostgreSQL Database       File Storage Lokal / Upload
  (master data, transaksi,  (gambar obat, file resep,
- stok, order, log)         export sementara)
+ stok, order, log)         bukti bayar, export)
 
 Admin / Apoteker / Kasir
 akses dari jaringan internal
@@ -107,6 +107,7 @@ Fungsi:
 
 - menyimpan gambar obat
 - menyimpan file resep
+- menyimpan bukti pembayaran
 - menyimpan file export/report sementara
 
 Catatan:

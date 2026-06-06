@@ -1,17 +1,4 @@
-<!DOCTYPE html>
-<html lang="id">
-  <head>
-    <%- include('../../../partials/head') %>
-  </head>
-  <body class="app-page">
-    <main class="dashboard-shell">
-      <%- include('../../../partials/app-header', {
-        eyebrow: 'System',
-        heading: 'Manajemen Akun',
-        subtitle: 'Daftar akun internal dan pelanggan yang sudah tersimpan di sistem.',
-        showLogout: true
-      }) %>
-      <%- include('../../../partials/app-nav', { currentPath: '/system/users' }) %>
+<%- include('../../../partials/backoffice-shell-start', { activePage: 'users' }) %>
 
       <section class="panel-card" style="margin-top: 20px;">
         <h2>Daftar Akun</h2>
@@ -50,6 +37,4 @@
           </div>
         <% } %>
       </section>
-    </main>
-  </body>
-</html>
+<%- include('../../../partials/backoffice-shell-end') %>

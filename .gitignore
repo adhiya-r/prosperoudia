@@ -151,13 +151,22 @@ desktop.ini
 AGENTS.md
 
 # Donor dashboard artifacts
-src/dashboard/
-src/dashboard/node_modules/
+src/dashboard/.env
+src/dashboard/.env.*
 src/dashboard/.git/
+src/dashboard/node_modules/
 src/dashboard/package-lock.json
 src/dashboard/package.json
 src/dashboard/knexfile.js
-src/dashboard/.env.example
+src/dashboard/nodemon.json
+src/dashboard/database/
+src/dashboard/docs/
+src/dashboard/tests/
+src/dashboard/README.md
+src/dashboard/public/reports/*
+src/dashboard/public/uploads/*
+!src/dashboard/public/reports/.gitkeep
+!src/dashboard/public/uploads/.gitkeep
 GITHUB_LINK.txt
 
 # Generated artifacts

@@ -1,6 +1,7 @@
 const database = require('../../config/database');
 const orderRepository = require('../orders/orderRepository');
 const prescriptionRepository = require('./prescriptionRepository');
+const { hasOpenableFileReference, normalizeFileReference } = require('../../shared/utils/fileReference');
 
 function formatCurrencyIDR(value) {
   return new Intl.NumberFormat('id-ID', {
@@ -8,6 +9,20 @@ function formatCurrencyIDR(value) {
     currency: 'IDR',
     maximumFractionDigits: 0
   }).format(Number(value ?? 0));
+}
+
+function formatDateTimeID(value) {
+  if (!value) {
+    return '-';
+  }
+
+  return new Date(value).toLocaleString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 function validatePrescriptionReview(payload = {}) {
@@ -49,7 +64,15 @@ async function listPendingPrescriptions() {
 }
 
 async function getPrescriptionDetail(prescriptionId) {
-  const record = await prescriptionRepository.findPrescriptionById(prescriptionId);
+  const normalizedPrescriptionId = Number.parseInt(String(prescriptionId), 10);
+
+  if (!Number.isInteger(normalizedPrescriptionId) || normalizedPrescriptionId <= 0) {
+    const error = new Error('Resep tidak ditemukan.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const record = await prescriptionRepository.findPrescriptionById(normalizedPrescriptionId);
 
   if (!record) {
     const error = new Error('Resep tidak ditemukan.');
@@ -59,7 +82,12 @@ async function getPrescriptionDetail(prescriptionId) {
 
   return {
     ...record,
+    image_path: normalizeFileReference(record.image_path),
+    hasOpenablePrescriptionFile: hasOpenableFileReference(record.image_path),
+    payment_proof_path: normalizeFileReference(record.payment_proof_path),
     total_amount_label: formatCurrencyIDR(record.total_amount),
+    hasPaymentProof: hasOpenableFileReference(record.payment_proof_path),
+    paymentProofUploadedAtLabel: formatDateTimeID(record.payment_proof_uploaded_at),
     items: record.items.map((item) => ({
       ...item,
       total_price_label: formatCurrencyIDR(item.total_price)
@@ -107,7 +135,17 @@ async function reviewPrescription(prescriptionId, reviewerUser, payload) {
       confirmed_at: nextPrescriptionStatus === 'approved' ? trx.fn.now() : null
     });
 
-    return reviewed;
+    const customerUser = prescription.customer_email
+      ? await orderRepository.findPortalUserByEmail(prescription.customer_email, trx)
+      : null;
+
+    return {
+      prescription: reviewed,
+      order_id: prescription.order_id,
+      order_number: prescription.order_number,
+      order_status: nextOrderStatus,
+      customer_user_id: customerUser?.id ?? null
+    };
   });
 }
 

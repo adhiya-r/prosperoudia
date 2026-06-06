@@ -1,0 +1,56 @@
+<%- include('../../partials/head', { pageTitle }) %>
+
+<main class="auth-shell" data-auth-shell style="<%= authBackgroundStyle || '' %>">
+
+
+  <section class="auth-panel">
+    <div class="auth-brand">
+      <div class="auth-brand__mark" aria-hidden="true">SS</div>
+      <p class="auth-brand__name">SmartStock Pro</p>
+    </div>
+
+    <div class="auth-card">
+      <% if (authMessage) { %>
+        <div class="alert alert--<%= authMessageType || 'info' %> form-alert">
+          <strong><%= authMessage %></strong>
+        </div>
+      <% } %>
+
+      <form class="form auth-form" action="/login" method="post" data-auth-form>
+        <% if (csrfToken) { %>
+          <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+        <% } %>
+        <div class="form-group">
+          <label class="form-label" for="username" data-i18n="auth.username.label">Username</label>
+          <input class="form-input" id="username" name="username" type="text" autocomplete="username" placeholder="Nama pengguna" data-i18n-placeholder="auth.username.placeholder" value="<%= formValues?.username || '' %>">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password" data-i18n="auth.password.label">Password</label>
+          <div class="password-field">
+            <input class="form-input password-field__input" id="password" name="password" type="password" autocomplete="current-password" placeholder="Masukkan password" data-i18n-placeholder="auth.password.placeholder">
+            <button class="password-field__toggle" type="button" data-password-toggle aria-pressed="false" aria-label="Show password" data-i18n-label="auth.show_password">
+              <svg class="password-field__icon password-field__icon--show" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+                <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.7"></circle>
+              </svg>
+              <svg class="password-field__icon password-field__icon--hide" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 3l18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                <path d="M10.6 10.6A3 3 0 0 0 12 15a3 3 0 0 0 1.4-.35" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                <path d="M6.2 6.2C4 7.8 2.5 10 2 12c1 3.5 4.8 7 10 7 1.6 0 3.1-.3 4.4-.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M17.8 17.8C20 16.2 21.5 14 22 12c-1-3.5-4.8-7-10-7-1.3 0-2.5.2-3.6.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="auth-actions">
+          <button class="btn btn-ghost auth-secondary-action" type="button" data-i18n="auth.no_account">Belum punya akun? Hubungi admin</button>
+          <button class="btn btn-primary auth-submit" type="submit" data-i18n="auth.submit">Masuk</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<%- include('../../partials/footer') %>

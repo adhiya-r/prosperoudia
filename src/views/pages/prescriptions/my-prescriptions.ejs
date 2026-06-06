@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="storefront-page profile-page">
+    <%- include('../../partials/storefront-header') %>
+
+    <main class="storefront-shell">
+      <nav class="storefront-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span>›</span>
+        <span>Resep Saya</span>
+      </nav>
+
+      <div class="profile-edit-layout">
+        <%- include('../../partials/profile-sidebar', { activePage: 'prescriptions' }) %>
+
+
+        <div class="profile-edit-content">
+          <section class="profile-card">
+            <div class="profile-card__header">
+              <h1><i class="fa-solid fa-file-prescription"></i> Resep Saya</h1>
+              <p>Daftar resep yang terkait dengan pesanan Anda</p>
+            </div>
+            <div class="orders-list">
+              <% if (!prescriptions.length) { %>
+                <div class="orders-empty">
+                  <i class="fa-solid fa-file-circle-xmark"></i>
+                  <p>Belum ada resep yang diupload</p>
+                  <small>Resep akan muncul di sini setelah Anda melakukan pemesanan obat resep</small>
+                </div>
+              <% } else { %>
+                <% prescriptions.forEach(function(p) { %>
+                  <div class="order-item">
+                    <div class="order-item__top">
+                      <div>
+                        <span class="order-item__number">Pesanan #<%= p.order_number %></span>
+                        <span class="badge badge--<%= p.statusTone %> order-item__status">
+                          <i class="fa-solid fa-<%= p.status === 'approved' ? 'circle-check' : p.status === 'rejected' ? 'circle-xmark' : 'clock' %>"></i>
+                          <%= p.statusLabel %>
+                        </span>
+                      </div>
+                      <span class="order-item__date"><%= p.createdAtLabel %></span>
+                    </div>
+                    <% if (p.doctor_name) { %>
+                      <div class="order-item__details">
+                        <span><i class="fa-solid fa-user-doctor"></i> Dr. <%= p.doctor_name %></span>
+                        <% if (p.prescription_number) { %>
+                          <span><i class="fa-solid fa-hashtag"></i> <%= p.prescription_number %></span>
+                        <% } %>
+                      </div>
+                    <% } %>
+                    <% if (p.status === 'rejected' && p.rejection_reason) { %>
+                      <div class="order-item__note order-item__note--danger">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Alasan ditolak: <%= p.rejection_reason %>
+                      </div>
+                    <% } %>
+                    <% if (p.reviewed_notes) { %>
+                      <div class="order-item__note">
+                        <i class="fa-solid fa-comment-medical"></i>
+                        Catatan apoteker: <%= p.reviewed_notes %>
+                      </div>
+                    <% } %>
+                  </div>
+                <% }); %>
+              <% } %>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer class="storefront-footer">
+      <p>&copy; <%= currentYear %> <%= appName %>. Semua hak dilindungi.</p>
+    </footer>
+  </body>
+</html>

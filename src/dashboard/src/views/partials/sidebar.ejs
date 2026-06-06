@@ -1,0 +1,203 @@
+<aside class="sidebar" aria-label="Main navigation" data-sidebar aria-hidden="false">
+  <div class="sidebar__brand">
+    <div class="brand-mark brand-mark--image" aria-hidden="true">
+      <img src="/images/logo-fix.jpeg" alt="Prosperoudia" />
+    </div>
+    <div class="brand-copy">
+      <p class="brand-name" data-i18n="brand.app"><%= appName %></p>
+    </div>
+    <button
+      class="sidebar__close"
+      type="button"
+      data-sidebar-close
+      aria-label="Tutup navigasi"
+      data-i18n-label="layout.close_navigation">
+      ✕
+    </button>
+  </div>
+
+  <div class="sidebar-scroll">
+    <nav class="sidebar-nav">
+      <div class="sidebar-group">
+        <p class="sidebar-group__label" data-i18n="nav.start">Start</p>
+        <a class="sidebar-link <%= activePage === 'dashboard' ? 'sidebar-link--active' : '' %>" href="/dashboard">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-chart-line sidebar-link__icon"></i>
+            <span data-i18n="nav.dashboard">Dashboard</span>
+          </span>
+          <span class="sidebar-link__meta">Aktif</span>
+        </a>
+      </div>
+
+      <div class="sidebar-group">
+        <p class="sidebar-group__label" data-i18n="nav.master_data">Master Data</p>
+        <a class="sidebar-link <%= activePage === 'products' ? 'sidebar-link--active' : '' %>" href="/medicines">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-pills sidebar-link__icon"></i>
+            <span>Obat</span>
+          </span>
+          <span class="sidebar-link__meta">SKU</span>
+        </a>
+        <a class="sidebar-link <%= activePage === 'categories' ? 'sidebar-link--active' : '' %>" href="/categories">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-tags sidebar-link__icon"></i>
+            <span>Kategori Obat</span>
+          </span>
+          <span class="sidebar-link__meta">Grup</span>
+        </a>
+        <a class="sidebar-link <%= activePage === 'suppliers' ? 'sidebar-link--active' : '' %>" href="/suppliers">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-handshake sidebar-link__icon"></i>
+            <span>Supplier</span>
+          </span>
+          <span class="sidebar-link__meta">Partner</span>
+        </a>
+      </div>
+
+      <div class="sidebar-group">
+        <p class="sidebar-group__label" data-i18n="nav.operations">Operations</p>
+        <% if (['Admin', 'Apoteker', 'Kasir'].includes(currentRole)) { %>
+        <a class="sidebar-link <%= activePage === 'orders' ? 'sidebar-link--active' : '' %>" href="/orders/manage">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-receipt sidebar-link__icon"></i>
+            <span>Manajemen Order</span>
+          </span>
+          <span class="sidebar-link__meta">Order</span>
+        </a>
+        <% } %>
+        <% if (['Admin', 'Apoteker'].includes(currentRole)) { %>
+        <a class="sidebar-link <%= activePage === 'prescriptions' ? 'sidebar-link--active' : '' %>" href="/prescriptions/review">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-file-prescription sidebar-link__icon"></i>
+            <span>Verifikasi Resep</span>
+          </span>
+          <span class="sidebar-link__meta">Review</span>
+        </a>
+        <% } %>
+        <a class="sidebar-link <%= activePage === 'stock-transactions' ? 'sidebar-link--active' : '' %>" href="/stock-transactions">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-boxes-stacked sidebar-link__icon"></i>
+            <span>Pergerakan Stok</span>
+          </span>
+          <span class="sidebar-link__meta">Gerak</span>
+        </a>
+        <a class="sidebar-link <%= activePage === 'notifications' ? 'sidebar-link--active' : '' %>" href="/notifications">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-bell sidebar-link__icon"></i>
+            <span>Notifikasi</span>
+          </span>
+          <span class="sidebar-link__meta">Alert</span>
+        </a>
+        <a class="sidebar-link <%= activePage === 'reports' ? 'sidebar-link--active' : '' %>" href="/reports">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-file-invoice-dollar sidebar-link__icon"></i>
+            <span>Laporan</span>
+          </span>
+          <span class="sidebar-link__meta">PDF</span>
+        </a>
+      </div>
+
+      <% if (currentRole === 'Admin') { %>
+      <div class="sidebar-group">
+        <p class="sidebar-group__label">System</p>
+        <details class="sidebar-subnav" <%= String(activePage || '').startsWith('monitoring-') ? 'open' : '' %>>
+          <summary class="sidebar-subnav__summary">
+            <span class="sidebar-link__label-group">
+              <i class="fa-solid fa-gauge sidebar-link__icon"></i>
+              <span data-i18n="nav.monitoring">Monitoring</span>
+            </span>
+            <span class="sidebar-subnav__chevron" aria-hidden="true">▾</span>
+          </summary>
+
+          <div class="sidebar-subnav__items">
+            <a class="sidebar-link sidebar-link--sub <%= activePage === 'monitoring-overview' ? 'sidebar-link--active' : '' %>" href="/monitoring">
+              <span class="sidebar-link__label-group">
+                <i class="fa-solid fa-circle-info sidebar-link__icon"></i>
+                <span data-i18n="nav.monitoring_overview">Overview</span>
+              </span>
+              <span class="sidebar-link__meta">Status</span>
+            </a>
+            <a class="sidebar-link sidebar-link--sub <%= activePage === 'monitoring-health' ? 'sidebar-link--active' : '' %>" href="/monitoring/health">
+              <span class="sidebar-link__label-group">
+                <i class="fa-solid fa-server sidebar-link__icon"></i>
+                <span data-i18n="nav.system_health">System Health</span>
+              </span>
+              <span class="sidebar-link__meta">Health</span>
+            </a>
+            <a class="sidebar-link sidebar-link--sub <%= activePage === 'monitoring-resources' ? 'sidebar-link--active' : '' %>" href="/monitoring/resources">
+              <span class="sidebar-link__label-group">
+                <i class="fa-solid fa-microchip sidebar-link__icon"></i>
+                <span data-i18n="nav.server_resources">Server Resources</span>
+              </span>
+              <span class="sidebar-link__meta">Resource</span>
+            </a>
+          </div>
+        </details>
+      </div>
+
+      <div class="sidebar-group sidebar-group--admin">
+        <p class="sidebar-group__label" data-i18n="nav.admin">Administration</p>
+        <a class="sidebar-link <%= activePage === 'users' ? 'sidebar-link--active' : '' %>" href="/system/users">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-users-gear sidebar-link__icon"></i>
+            <span>Manajemen Akun</span>
+          </span>
+          <span class="sidebar-link__meta">Users</span>
+        </a>
+        <a class="sidebar-link <%= activePage === 'audit-logs' ? 'sidebar-link--active' : '' %>" href="/audit-logs">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-clipboard-list sidebar-link__icon"></i>
+            <span>Audit Logs</span>
+          </span>
+          <span class="sidebar-link__meta">Trace</span>
+        </a>
+        <a class="sidebar-link <%= activePage === 'error-logs' ? 'sidebar-link--active' : '' %>" href="/error-logs">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-triangle-exclamation sidebar-link__icon"></i>
+            <span>Error Logs</span>
+          </span>
+          <span class="sidebar-link__meta">Issue</span>
+        </a>
+        <a class="sidebar-link <%= activePage === 'imports' ? 'sidebar-link--active' : '' %>" href="/imports">
+          <span class="sidebar-link__label-group">
+            <i class="fa-solid fa-file-import sidebar-link__icon"></i>
+            <span>Import</span>
+          </span>
+          <span class="sidebar-link__meta">CSV</span>
+        </a>
+      </div>
+      <% } %>
+    </nav>
+  </div>
+
+  <div class="sidebar__footer">
+    <details class="sidebar-profile">
+      <summary class="sidebar-profile__summary">
+        <% if (currentUser?.avatar_url) { %>
+          <img class="sidebar-profile__avatar sidebar-profile__avatar--photo" src="<%= currentUser.avatar_url %>" alt="" />
+        <% } else { %>
+          <span class="sidebar-profile__avatar" aria-hidden="true"><%= (currentUser?.full_name || currentUser?.username || 'U').charAt(0).toUpperCase() %></span>
+        <% } %>
+        <span class="sidebar-profile__meta">
+          <span class="sidebar-profile__name" title="<%= currentUser?.full_name || currentUser?.username || 'User' %>"><%= currentUser?.full_name || currentUser?.username || 'User' %></span>
+          <span class="sidebar-profile__role" title="<%= currentRole || 'Role' %>"><%= currentRole || 'Role' %></span>
+        </span>
+      </summary>
+
+      <div class="sidebar-profile__menu">
+        <div class="sidebar-profile__card">
+          <p class="sidebar-profile__card-name" title="<%= currentUser?.full_name || currentUser?.username || 'User' %>"><%= currentUser?.full_name || currentUser?.username || 'User' %></p>
+          <p class="sidebar-profile__card-role" title="<%= currentRole || 'Role' %>"><%= currentRole || 'Role' %></p>
+        </div>
+        <a class="sidebar-profile__link" href="/profile"><i class="fa-solid fa-user-pen"></i> Profil Saya</a>
+        <form class="sidebar-profile__form" action="/logout" method="post">
+          <% if (csrfToken) { %>
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+          <% } %>
+          <button class="sidebar-profile__link sidebar-profile__link--button sidebar-profile__link--danger" type="submit" data-i18n="nav.logout">Logout</button>
+        </form>
+      </div>
+    </details>
+  </div>
+</aside>
+<button class="sidebar-overlay" type="button" data-sidebar-overlay aria-label="Close navigation" data-i18n-label="layout.close_navigation"></button>

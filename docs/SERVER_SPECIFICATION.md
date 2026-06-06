@@ -80,6 +80,7 @@ Komponen storage utama:
 - database PostgreSQL
 - gambar obat
 - file resep
+- bukti pembayaran
 - file export PDF/CSV
 - log aplikasi
 - backup database
@@ -88,7 +89,7 @@ Estimasi kebutuhan awal:
 
 - aplikasi + dependency: `1-3 GB`
 - database awal: `2-10 GB`
-- file resep dan gambar: `10-20 GB`
+- file resep, bukti pembayaran, dan gambar: `10-20 GB`
 - log + export + buffer operasional: `5-10 GB`
 
 Karena itu total `40-100 GB SSD` masih realistis untuk fase awal.
@@ -102,7 +103,7 @@ Untuk prototype:
 Alasan:
 
 - mayoritas transaksi berbasis form dan halaman server-rendered
-- file upload resep dan gambar obat masih ukuran sedang
+- file upload resep, bukti pembayaran, dan gambar obat masih ukuran sedang
 - belum ada streaming atau traffic media berat
 
 Jika traffic meningkat:

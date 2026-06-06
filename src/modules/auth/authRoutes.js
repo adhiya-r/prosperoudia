@@ -11,4 +11,7 @@ router.post('/login', requireGuest, authController.login);
 router.post('/register', requireGuest, authController.register);
 router.post('/logout', requireAuth, authController.logout);
 
+router.get('/auth/google', requireGuest, authController.googleAuthStart);
+router.get('/auth/google/callback', requireGuest, authController.googleAuthCallback);
+
 module.exports = router;
