@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="home-page storefront-page">
+    <header class="storefront-header">
+      <div class="storefront-header__main">
+        <a href="/" class="brand-logo" aria-label="Prosperoudia">
+          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" />
+        </a>
+
+        <div class="storefront-actions">
+          <div class="cart-preview">
+            <a href="/cart" class="cart-link cart-link-icon-only" aria-label="Lihat keranjang belanja">
+              <span class="cart-link__icon">🛒</span>
+              <% if (cart.totalQuantity > 0) { %>
+                <span class="cart-link__count"><%= cart.totalQuantity %></span>
+              <% } %>
+            </a>
+            <div class="cart-preview__panel">
+              <div class="cart-preview__items">
+                <% cart.previewItems.forEach((item) => { %>
+                  <article class="cart-preview__item">
+                    <div>
+                      <strong><%= item.name %></strong>
+                      <span><%= item.quantity %> x <%= item.unit_price_label %></span>
+                    </div>
+                    <span><%= item.line_total_label %></span>
+                  </article>
+                <% }) %>
+              </div>
+              <div class="cart-preview__footer">
+                <strong>Total <%= cart.totalAmountLabel %></strong>
+                <a href="/cart">Lihat semua</a>
+              </div>
+            </div>
+          </div>
+          <details class="profile-menu">
+            <summary class="profile-menu__trigger">
+              <span class="profile-avatar"><%= currentUser.full_name.charAt(0).toUpperCase() %></span>
+              <span class="profile-name"><%= currentUser.full_name %></span>
+            </summary>
+            <div class="profile-menu__panel">
+              <a href="/dashboard">Dashboard</a>
+              <form action="/logout" method="post">
+                <%- include('../../partials/csrf-field') %>
+                <button type="submit">Logout</button>
+              </form>
+            </div>
+          </details>
+        </div>
+      </div>
+    </header>
+
+    <main class="storefront-shell">
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
+      <% } %>
+
+      <nav class="storefront-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span>›</span>
+        <a href="/cart">Keranjang</a>
+        <span>›</span>
+        <span>Checkout</span>
+      </nav>
+
+      <section class="cart-layout cart-layout-storefront">
+        <article class="cart-panel">
+          <div class="cart-panel__header">
+            <div>
+              <p class="eyebrow">Checkout</p>
+              <h1>Data pemesanan</h1>
+            </div>
+            <a href="/cart" class="button-outline">Kembali ke keranjang</a>
+          </div>
+
+          <form action="/checkout?csrfToken=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" class="auth-form">
+            <%- include('../../partials/csrf-field') %>
+            <label class="field">
+              <span>Nama Lengkap</span>
+              <input type="text" name="full_name" value="<%= formValues.full_name || '' %>" placeholder="Nama pelanggan" />
+              <% if (formErrors.full_name) { %><small class="field-error"><%= formErrors.full_name %></small><% } %>
+            </label>
+
+            <div class="form-split">
+              <label class="field">
+                <span>Email</span>
+                <input type="email" name="email" value="<%= formValues.email || '' %>" placeholder="email@contoh.com" />
+                <% if (formErrors.email) { %><small class="field-error"><%= formErrors.email %></small><% } %>
+              </label>
+              <label class="field">
+                <span>Nomor HP</span>
+                <input type="text" name="phone" value="<%= formValues.phone || '' %>" placeholder="081234567890" />
+                <% if (formErrors.phone) { %><small class="field-error"><%= formErrors.phone %></small><% } %>
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Alamat</span>
+              <textarea name="address" rows="4" placeholder="Alamat lengkap untuk kebutuhan pengambilan/pengiriman"><%= formValues.address || '' %></textarea>
+              <% if (formErrors.address) { %><small class="field-error"><%= formErrors.address %></small><% } %>
+            </label>
+
+            <div class="form-split">
+              <label class="field">
+                <span>Metode Pembayaran</span>
+                <select name="payment_method">
+                  <option value="">Pilih metode pembayaran</option>
+                  <% paymentMethods.forEach((item) => { %>
+                    <option value="<%= item.value %>" <%= formValues.payment_method === item.value ? 'selected' : '' %>><%= item.label %></option>
+                  <% }) %>
+                </select>
+                <% if (formErrors.payment_method) { %><small class="field-error"><%= formErrors.payment_method %></small><% } %>
+              </label>
+              <label class="field">
+                <span>Metode Pengambilan</span>
+                <select name="fulfillment_method">
+                  <% fulfillmentMethods.forEach((item) => { %>
+                    <option value="<%= item.value %>" <%= formValues.fulfillment_method === item.value ? 'selected' : '' %>><%= item.label %></option>
+                  <% }) %>
+                </select>
+                <% if (formErrors.fulfillment_method) { %><small class="field-error"><%= formErrors.fulfillment_method %></small><% } %>
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Catatan Pesanan</span>
+              <textarea name="notes" rows="3" placeholder="Catatan tambahan jika diperlukan"><%= formValues.notes || '' %></textarea>
+            </label>
+
+            <% if (requiresPrescription) { %>
+              <div class="form-section-divider"></div>
+              <h2 class="form-section-title">Data resep</h2>
+
+              <label class="field">
+                <span>Nama Dokter</span>
+                <input type="text" name="doctor_name" value="<%= formValues.doctor_name || '' %>" placeholder="contoh: dr. Andi Wijaya" />
+                <% if (formErrors.doctor_name) { %><small class="field-error"><%= formErrors.doctor_name %></small><% } %>
+              </label>
+
+              <label class="field">
+                <span>Nomor Resep</span>
+                <input type="text" name="prescription_number" value="<%= formValues.prescription_number || '' %>" placeholder="Opsional, jika tersedia" />
+              </label>
+
+              <label class="field">
+                <span>Referensi Resep</span>
+                <input type="text" name="prescription_image_path" value="<%= formValues.prescription_image_path || '' %>" placeholder="/uploads/resep-001.jpg atau link file resep" />
+                <% if (formErrors.prescription_image_path) { %><small class="field-error"><%= formErrors.prescription_image_path %></small><% } %>
+              </label>
+
+              <label class="field">
+                <span>Upload File Resep</span>
+                <input type="file" name="prescription_image" accept=".jpg,.jpeg,.png,.webp,.pdf" />
+                <small class="subtitle">JPG, PNG, WEBP, atau PDF.</small>
+              </label>
+            <% } %>
+
+            <button type="submit" class="button-solid">Buat Pesanan</button>
+          </form>
+        </article>
+
+        <aside class="cart-summary-card">
+          <h2>Ringkasan checkout</h2>
+          <div class="cart-list cart-list-compact">
+            <% cart.items.forEach((item) => { %>
+              <article class="cart-item cart-item-compact">
+                <div class="cart-item__meta">
+                  <strong><%= item.name %></strong>
+                  <span><%= item.unit_price_label %> x <%= item.quantity %></span>
+                </div>
+                <div class="cart-item__price">
+                  <strong><%= item.line_total_label %></strong>
+                </div>
+              </article>
+            <% }) %>
+          </div>
+
+          <dl class="detail-list">
+            <div>
+              <dt>Total item</dt>
+              <dd><%= cart.totalQuantity %></dd>
+            </div>
+            <div>
+              <dt>Total bayar</dt>
+              <dd><strong><%= cart.totalAmountLabel %></strong></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+    </main>
+  </body>
+</html>

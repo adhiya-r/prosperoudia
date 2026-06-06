@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../partials/app-header', {
+        eyebrow: 'Apoteker',
+        heading: 'Verifikasi Resep',
+        subtitle: 'Daftar resep yang masih menunggu review sebelum order diproses.',
+        showLogout: true
+      }) %>
+      <%- include('../../partials/app-nav', { currentPath: '/prescriptions/review' }) %>
+
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
+      <% } %>
+
+      <section class="panel-grid">
+        <article class="panel-card">
+          <h2>Resep Pending</h2>
+          <% if (!prescriptions.length) { %>
+            <p class="subtitle">Tidak ada resep yang menunggu review saat ini.</p>
+          <% } else { %>
+            <div class="table-shell">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Pelanggan</th>
+                    <th>Dokter</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% prescriptions.forEach((prescription) => { %>
+                    <tr>
+                      <td><strong><%= prescription.order_number %></strong></td>
+                      <td>
+                        <div><%= prescription.customer_name %></div>
+                        <small class="subtitle"><%= prescription.customer_phone %></small>
+                      </td>
+                      <td>
+                        <div><%= prescription.doctor_name %></div>
+                        <small class="subtitle"><%= prescription.prescription_number || '-' %></small>
+                      </td>
+                      <td><%= prescription.total_amount_label %></td>
+                      <td><span class="status-pill status-warning">Pending</span></td>
+                      <td><a href="/prescriptions/<%= prescription.id %>" class="button-outline">Review</a></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

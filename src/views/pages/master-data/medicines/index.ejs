@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../../partials/app-header', {
+        eyebrow: 'Master Data',
+        heading: 'Obat',
+        subtitle: 'Bootstrap katalog obat, atribut farmasi, dan data dasar untuk storefront.',
+        showLogout: true
+      }) %>
+      <%- include('../../../partials/app-nav', { currentPath: '/medicines' }) %>
+
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
+      <% } %>
+
+      <section class="panel-grid panel-grid-wide">
+        <article class="panel-card">
+          <h2>Tambah Obat</h2>
+          <form action="/medicines?csrfToken=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" class="auth-form">
+            <%- include('../../../partials/csrf-field') %>
+            <label class="field">
+              <span>SKU</span>
+              <input type="text" name="sku" value="<%= formValues.sku || '' %>" placeholder="contoh: OBT-PCT-500" />
+              <% if (formErrors.sku) { %><small class="field-error"><%= formErrors.sku %></small><% } %>
+            </label>
+
+            <label class="field">
+              <span>Nama Obat</span>
+              <input type="text" name="name" value="<%= formValues.name || '' %>" placeholder="contoh: Paracetamol 500 mg" />
+              <% if (formErrors.name) { %><small class="field-error"><%= formErrors.name %></small><% } %>
+            </label>
+
+            <label class="field">
+              <span>Merek</span>
+              <input type="text" name="brand_name" value="<%= formValues.brand_name || '' %>" placeholder="contoh: Sanbe" />
+            </label>
+
+            <label class="field">
+              <span>Kategori</span>
+              <select name="category_id">
+                <option value="">Pilih kategori</option>
+                <% categories.forEach((category) => { %>
+                  <option value="<%= category.id %>" <%= String(formValues.category_id || '') === String(category.id) ? 'selected' : '' %>><%= category.name %></option>
+                <% }) %>
+              </select>
+              <% if (formErrors.category_id) { %><small class="field-error"><%= formErrors.category_id %></small><% } %>
+            </label>
+
+            <label class="field">
+              <span>Supplier</span>
+              <select name="supplier_id">
+                <option value="">Pilih supplier</option>
+                <% suppliers.forEach((supplier) => { %>
+                  <option value="<%= supplier.id %>" <%= String(formValues.supplier_id || '') === String(supplier.id) ? 'selected' : '' %>><%= supplier.name %></option>
+                <% }) %>
+              </select>
+              <% if (formErrors.supplier_id) { %><small class="field-error"><%= formErrors.supplier_id %></small><% } %>
+            </label>
+
+            <div class="form-split">
+              <label class="field">
+                <span>Harga Jual</span>
+                <input type="text" name="unit_price" value="<%= formValues.unit_price || '' %>" placeholder="contoh: 12500" />
+                <% if (formErrors.unit_price) { %><small class="field-error"><%= formErrors.unit_price %></small><% } %>
+              </label>
+              <label class="field">
+                <span>Minimum Stok</span>
+                <input type="text" name="minimum_stock_threshold" value="<%= formValues.minimum_stock_threshold || '0' %>" placeholder="contoh: 10" />
+                <% if (formErrors.minimum_stock_threshold) { %><small class="field-error"><%= formErrors.minimum_stock_threshold %></small><% } %>
+              </label>
+            </div>
+
+            <div class="form-split">
+              <label class="field">
+                <span>Bentuk Sediaan</span>
+                <input type="text" name="dosage_form" value="<%= formValues.dosage_form || '' %>" placeholder="contoh: Tablet" />
+              </label>
+              <label class="field">
+                <span>Kekuatan</span>
+                <input type="text" name="strength" value="<%= formValues.strength || '' %>" placeholder="contoh: 500 mg" />
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Komposisi</span>
+              <textarea name="composition" rows="3" placeholder="Kandungan aktif obat"><%= formValues.composition || '' %></textarea>
+            </label>
+
+            <label class="field">
+              <span>Dosis</span>
+              <textarea name="dosage" rows="3" placeholder="Aturan penggunaan singkat"><%= formValues.dosage || '' %></textarea>
+            </label>
+
+            <label class="field">
+              <span>Efek Samping</span>
+              <textarea name="side_effects" rows="3" placeholder="Efek samping umum"><%= formValues.side_effects || '' %></textarea>
+            </label>
+
+            <label class="field">
+              <span>Deskripsi</span>
+              <textarea name="description" rows="4" placeholder="Deskripsi singkat untuk katalog"><%= formValues.description || '' %></textarea>
+            </label>
+
+            <label class="field">
+              <span>Gambar Obat</span>
+              <input type="file" name="medicine_image" accept=".jpg,.jpeg,.png,.webp" />
+              <% if (formValues.image_path) { %>
+                <small class="subtitle">File tersimpan: <%= formValues.image_path %></small>
+              <% } %>
+            </label>
+
+            <label class="field-checkbox">
+              <input type="checkbox" name="requires_prescription" <%= formValues.requires_prescription ? 'checked' : '' %> />
+              <span>Obat ini memerlukan resep dokter</span>
+            </label>
+
+            <button type="submit" class="button-primary">Simpan Obat</button>
+          </form>
+        </article>
+
+        <article class="panel-card">
+          <h2>Daftar Obat</h2>
+          <% if (!medicines.length) { %>
+            <p class="subtitle">Belum ada obat tersimpan.</p>
+          <% } else { %>
+            <div class="table-shell">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Nama</th>
+                    <th>Kategori</th>
+                    <th>Supplier</th>
+                    <th>Stok</th>
+                    <th>Harga</th>
+                    <th>Resep</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% medicines.forEach((medicine) => { %>
+                    <tr>
+                      <td><strong><%= medicine.sku %></strong></td>
+                      <td>
+                        <div><%= medicine.name %></div>
+                        <small class="subtitle"><%= medicine.brand_name || '-' %></small>
+                        <% if (medicine.image_path) { %>
+                          <small class="subtitle"><a href="<%= medicine.image_path %>" target="_blank" rel="noreferrer">Lihat gambar</a></small>
+                        <% } %>
+                      </td>
+                      <td><%= medicine.category_name %></td>
+                      <td><%= medicine.supplier_name %></td>
+                      <td><%= medicine.current_stock %></td>
+                      <td><%= medicine.price_label %></td>
+                      <td><%= medicine.requires_prescription ? 'Ya' : 'Tidak' %></td>
+                      <td><span class="status-pill <%= medicine.is_active ? 'status-active' : 'status-muted' %>"><%= medicine.is_active ? 'Aktif' : 'Nonaktif' %></span></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

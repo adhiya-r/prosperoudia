@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../../partials/app-header', {
+        eyebrow: 'Operasional',
+        heading: `Order ${order.order_number}`,
+        subtitle: 'Detail order internal untuk monitoring status dan pembayaran.',
+        showLogout: true
+      }) %>
+      <%- include('../../../partials/app-nav', { currentPath: '/orders/manage' }) %>
+
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
+      <% } %>
+
+      <section class="panel-grid panel-grid-wide">
+        <article class="panel-card">
+          <h2>Ringkasan Order</h2>
+          <dl class="detail-list">
+            <div>
+              <dt>Pelanggan</dt>
+              <dd><%= order.customer_name %></dd>
+            </div>
+            <div>
+              <dt>Email</dt>
+              <dd><%= order.customer_email %></dd>
+            </div>
+            <div>
+              <dt>HP</dt>
+              <dd><%= order.customer_phone %></dd>
+            </div>
+            <div>
+              <dt>Status Order</dt>
+              <dd><%= order.statusLabel %></dd>
+            </div>
+            <div>
+              <dt>Status Pembayaran</dt>
+              <dd><%= order.paymentStatusLabel %></dd>
+            </div>
+            <div>
+              <dt>Total</dt>
+              <dd><strong><%= order.totalAmountLabel %></strong></dd>
+            </div>
+          </dl>
+
+          <% if (order.prescription) { %>
+            <div class="alert <%= order.prescription.status === 'rejected' ? 'alert-danger' : 'alert-info' %>">
+              Resep: <strong><%= order.prescription.statusLabel %></strong>.
+              <% if (order.prescription.rejection_reason) { %>
+                <span><%= order.prescription.rejection_reason %></span>
+              <% } %>
+            </div>
+          <% } %>
+
+          <h3>Item Order</h3>
+          <div class="cart-list cart-list-compact">
+            <% order.items.forEach((item) => { %>
+              <article class="cart-item cart-item-compact">
+                <div class="cart-item__meta">
+                  <strong><%= item.medicine_name_snapshot %></strong>
+                  <span><%= item.medicine_sku_snapshot %> • qty <%= item.quantity %></span>
+                </div>
+                <div class="cart-item__price">
+                  <strong><%= item.totalPriceLabel %></strong>
+                  <span><%= item.unitPriceLabel %> x <%= item.quantity %></span>
+                </div>
+              </article>
+            <% }) %>
+          </div>
+        </article>
+
+        <article class="panel-card">
+          <h2>Update Status</h2>
+          <form action="/orders/manage/<%= order.id %>/status" method="post" class="auth-form">
+            <%- include('../../../partials/csrf-field') %>
+            <label class="field">
+              <span>Status Order</span>
+              <select name="status">
+                <% orderStatusOptions.forEach((item) => { %>
+                  <option value="<%= item.value %>" <%= formValues.status === item.value ? 'selected' : '' %>><%= item.label %></option>
+                <% }) %>
+              </select>
+              <% if (formErrors.status) { %><small class="field-error"><%= formErrors.status %></small><% } %>
+            </label>
+
+            <label class="field">
+              <span>Status Pembayaran</span>
+              <select name="payment_status">
+                <% paymentStatusOptions.forEach((item) => { %>
+                  <option value="<%= item.value %>" <%= formValues.payment_status === item.value ? 'selected' : '' %>><%= item.label %></option>
+                <% }) %>
+              </select>
+              <% if (formErrors.payment_status) { %><small class="field-error"><%= formErrors.payment_status %></small><% } %>
+            </label>
+
+            <label class="field">
+              <span>Catatan Internal</span>
+              <textarea name="notes" rows="4" placeholder="Catatan internal order"><%= formValues.notes || '' %></textarea>
+            </label>
+
+            <button type="submit" class="button-primary">Simpan Update</button>
+          </form>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

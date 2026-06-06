@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../../partials/app-header', {
+        eyebrow: 'Master Data',
+        heading: 'Kategori Obat',
+        subtitle: 'MVP master data kategori untuk bootstrap katalog obat.',
+        showLogout: true
+      }) %>
+      <%- include('../../../partials/app-nav', { currentPath: '/categories' }) %>
+
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
+      <% } %>
+
+      <section class="panel-grid panel-grid-wide">
+        <article class="panel-card">
+          <h2>Tambah Kategori</h2>
+          <form action="/categories" method="post" class="auth-form">
+            <%- include('../../../partials/csrf-field') %>
+            <label class="field">
+              <span>Kode</span>
+              <input type="text" name="code" value="<%= formValues.code || '' %>" placeholder="contoh: OBT-BEBAS" />
+              <% if (formErrors.code) { %><small class="field-error"><%= formErrors.code %></small><% } %>
+            </label>
+            <label class="field">
+              <span>Nama</span>
+              <input type="text" name="name" value="<%= formValues.name || '' %>" placeholder="contoh: Obat Bebas" />
+              <% if (formErrors.name) { %><small class="field-error"><%= formErrors.name %></small><% } %>
+            </label>
+            <label class="field">
+              <span>Deskripsi</span>
+              <textarea name="description" rows="4" placeholder="Deskripsi singkat kategori"><%= formValues.description || '' %></textarea>
+            </label>
+            <button type="submit" class="button-primary">Simpan Kategori</button>
+          </form>
+        </article>
+
+        <article class="panel-card">
+          <h2>Daftar Kategori</h2>
+          <% if (!categories.length) { %>
+            <p class="subtitle">Belum ada kategori tersimpan.</p>
+          <% } else { %>
+            <div class="table-shell">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Kode</th>
+                    <th>Nama</th>
+                    <th>Deskripsi</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% categories.forEach((category) => { %>
+                    <tr>
+                      <td><strong><%= category.code %></strong></td>
+                      <td><%= category.name %></td>
+                      <td><%= category.description || '-' %></td>
+                      <td><span class="status-pill <%= category.is_active ? 'status-active' : 'status-muted' %>"><%= category.is_active ? 'Aktif' : 'Nonaktif' %></span></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

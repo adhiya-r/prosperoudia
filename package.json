@@ -1,0 +1,37 @@
+{
+  "name": "prosperoudia",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BNSP pharmacy e-commerce assessment prototype",
+  "main": "src/server.js",
+  "dependencies": {
+    "connect-pg-simple": "^10.0.0",
+    "dotenv": "^17.2.1",
+    "ejs": "^3.1.10",
+    "exceljs": "^4.4.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "helmet": "^8.1.0",
+    "knex": "^3.1.0",
+    "morgan": "^1.11.0",
+    "multer": "^2.1.1",
+    "pdfkit": "^0.18.0",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "supertest": "^7.1.1"
+  },
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "NODE_ENV=test node --test",
+    "knex": "knex --knexfile knexfile.js",
+    "migrate": "knex --knexfile knexfile.js migrate:latest",
+    "migrate:rollback": "knex --knexfile knexfile.js migrate:rollback",
+    "seed": "knex --knexfile knexfile.js seed:run"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

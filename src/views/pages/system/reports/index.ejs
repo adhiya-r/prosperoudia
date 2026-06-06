@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../../partials/app-header', {
+        eyebrow: 'Reports',
+        heading: 'Laporan PDF',
+        subtitle: 'Generate ringkasan operasional apotek dalam format PDF dan pantau riwayat job laporan.',
+        showLogout: true
+      }) %>
+      <%- include('../../../partials/app-nav', { currentPath: '/system/reports' }) %>
+
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>" style="margin-top: 20px;"><%= flashMessage %></div>
+      <% } %>
+
+      <section class="panel-grid panel-grid-wide" style="margin-top: 20px;">
+        <article class="panel-card">
+          <h2>Generate Report</h2>
+          <form action="/system/reports/export?csrfToken=<%= encodeURIComponent(csrfToken) %>" method="post" class="auth-form">
+            <%- include('../../../partials/csrf-field') %>
+            <label class="field">
+              <span>Tipe Report</span>
+              <select name="report_type">
+                <option value="pharmacy_summary_pdf">Pharmacy Summary PDF</option>
+              </select>
+            </label>
+
+            <div class="subtitle">
+              Report saat ini berisi ringkasan KPI, tren order 7 hari, obat low stock, obat terlaris, batch mendekati expiry, dan order terbaru.
+            </div>
+
+            <button type="submit" class="button-primary">Generate PDF</button>
+          </form>
+        </article>
+
+        <article class="panel-card">
+          <h2>Riwayat Report</h2>
+          <% if (!jobs.length) { %>
+            <p class="subtitle">Belum ada report job.</p>
+          <% } else { %>
+            <div class="table-shell">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Tipe</th>
+                    <th>Status</th>
+                    <th>File</th>
+                    <th>Oleh</th>
+                    <th>Dibuat</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% jobs.forEach((job) => { %>
+                    <tr>
+                      <td><strong><%= job.report_type %></strong></td>
+                      <td><span class="status-pill <%= job.status === 'completed' ? 'status-active' : job.status === 'failed' ? 'status-muted' : '' %>"><%= job.status %></span></td>
+                      <td>
+                        <% if (job.output_file_path) { %>
+                          <a href="<%= job.output_file_path %>" target="_blank" rel="noreferrer">Buka PDF</a>
+                        <% } else { %>
+                          -
+                        <% } %>
+                      </td>
+                      <td><%= job.creator_name || '-' %></td>
+                      <td><%= job.created_at ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(job.created_at)) : '-' %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

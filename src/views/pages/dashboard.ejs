@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../partials/app-header', {
+        eyebrow: 'Dashboard',
+        heading: 'Ringkasan Operasional',
+        subtitle: 'Pantau stok, order, dan notifikasi penting dari satu halaman.',
+        showLogout: true
+      }) %>
+      <%- include('../partials/app-nav', { currentPath: '/dashboard' }) %>
+
+      <section class="dashboard-metric-grid">
+        <% metrics.forEach((metric) => { %>
+          <article class="dashboard-metric-card">
+            <p class="dashboard-metric-card__label"><%= metric.label %></p>
+            <p class="dashboard-metric-card__value"><%= metric.value %></p>
+          </article>
+        <% }) %>
+      </section>
+
+      <section class="dashboard-analytics-grid">
+        <article class="panel-card dashboard-chart-panel">
+          <div class="dashboard-section-header">
+            <div>
+              <h2>Tren Order 7 Hari</h2>
+              <p class="subtitle">Jumlah order dan pergerakan nominal transaksi per hari.</p>
+            </div>
+          </div>
+          <canvas id="dashboard-order-trend" height="120"></canvas>
+        </article>
+
+        <article class="panel-card">
+          <div class="dashboard-section-header">
+            <div>
+              <h2>Low Stock</h2>
+              <p class="subtitle">Produk yang sudah menyentuh threshold minimum.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-list">
+            <% if (dashboardState.lowStockProducts.length) { %>
+              <% dashboardState.lowStockProducts.forEach((product) => { %>
+                <article class="dashboard-list__item">
+                  <div>
+                    <strong><%= product.name %></strong>
+                    <span><%= product.sku %> • <%= product.category_name || '-' %></span>
+                  </div>
+                  <span class="dashboard-pill"><%= product.current_stock %> / <%= product.threshold %></span>
+                </article>
+              <% }) %>
+            <% } else { %>
+              <p class="subtitle">Belum ada item low stock.</p>
+            <% } %>
+          </div>
+        </article>
+      </section>
+
+      <section class="dashboard-analytics-grid">
+        <article class="panel-card">
+          <div class="dashboard-section-header">
+            <div>
+              <h2>Order Terbaru</h2>
+              <p class="subtitle">Daftar order terakhir yang masuk ke sistem.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-list">
+            <% if (dashboardState.recentOrders.length) { %>
+              <% dashboardState.recentOrders.forEach((order) => { %>
+                <article class="dashboard-list__item">
+                  <div>
+                    <strong><%= order.order_number %></strong>
+                    <span><%= order.customer_name %> • <%= order.status %> • <%= order.payment_status %></span>
+                  </div>
+                  <span class="dashboard-list__value"><%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(order.total_amount) %></span>
+                </article>
+              <% }) %>
+            <% } else { %>
+              <p class="subtitle">Belum ada order terbaru.</p>
+            <% } %>
+          </div>
+        </article>
+
+        <article class="panel-card">
+          <div class="dashboard-section-header">
+            <div>
+              <h2>Stock Movements</h2>
+              <p class="subtitle">Pergerakan stok terakhir dari sistem inventory.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-list">
+            <% if (dashboardState.recentStockMovements.length) { %>
+              <% dashboardState.recentStockMovements.forEach((movement) => { %>
+                <article class="dashboard-list__item">
+                  <div>
+                    <strong><%= movement.medicine_name %></strong>
+                    <span><%= movement.sku %> • <%= movement.movement_type %> • <%= movement.performed_by_name || 'System' %></span>
+                  </div>
+                  <span class="dashboard-list__value"><%= movement.quantity %></span>
+                </article>
+              <% }) %>
+            <% } else { %>
+              <p class="subtitle">Belum ada stock movement.</p>
+            <% } %>
+          </div>
+        </article>
+      </section>
+
+      <section class="dashboard-analytics-grid">
+        <article class="panel-card">
+          <div class="dashboard-section-header">
+            <div>
+              <h2>Notifikasi</h2>
+              <p class="subtitle">Pesan dan alert operasional terbaru.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-list">
+            <% if (dashboardState.recentNotifications.length) { %>
+              <% dashboardState.recentNotifications.forEach((notification) => { %>
+                <article class="dashboard-list__item">
+                  <div>
+                    <strong><%= notification.title %></strong>
+                    <span><%= notification.message %></span>
+                  </div>
+                  <span class="dashboard-pill dashboard-pill-<%= notification.severity %>"><%= notification.severity %></span>
+                </article>
+              <% }) %>
+            <% } else { %>
+              <p class="subtitle">Belum ada notifikasi.</p>
+            <% } %>
+          </div>
+        </article>
+
+        <article class="panel-card">
+          <div class="dashboard-section-header">
+            <div>
+              <h2>Error Logs</h2>
+              <p class="subtitle">Pantauan error aplikasi terbaru.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-list">
+            <% if (dashboardState.recentErrorLogs.length) { %>
+              <% dashboardState.recentErrorLogs.forEach((errorLog) => { %>
+                <article class="dashboard-list__item">
+                  <div>
+                    <strong><%= errorLog.message %></strong>
+                    <span><%= errorLog.request_path || '-' %></span>
+                  </div>
+                  <span class="dashboard-pill dashboard-pill-<%= errorLog.severity %>"><%= errorLog.severity %></span>
+                </article>
+              <% }) %>
+            <% } else { %>
+              <p class="subtitle">Belum ada error log.</p>
+            <% } %>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script id="dashboard-payload" type="application/json"><%- JSON.stringify(dashboardState).replace(/</g, '\\u003c') %></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+    <script src="/js/dashboard.js" defer></script>
+  </body>
+</html>

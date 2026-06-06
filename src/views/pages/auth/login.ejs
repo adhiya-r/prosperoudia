@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="auth-page">
+    <main class="auth-shell">
+      <section class="auth-card">
+        <%- include('../../partials/app-header', {
+          eyebrow: 'BNSP Prototype',
+          heading: appName,
+          subtitle: 'Login multi-role untuk Admin, Apoteker, Kasir, dan Pelanggan.',
+          showLogout: false
+        }) %>
+
+        <% if (errorMessage) { %>
+          <div class="alert alert-danger"><%= errorMessage %></div>
+        <% } %>
+
+        <form action="/login" method="post" class="auth-form">
+          <%- include('../../partials/csrf-field') %>
+          <label class="field">
+            <span>Username</span>
+            <input type="text" name="username" value="<%= formValues.username %>" autocomplete="username" />
+          </label>
+
+          <label class="field">
+            <span>Password</span>
+            <input type="password" name="password" autocomplete="current-password" />
+          </label>
+
+          <button type="submit" class="button-primary">Masuk</button>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

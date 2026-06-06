@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../partials/app-header', {
+        eyebrow: 'Apoteker',
+        heading: `Review Resep ${prescription.order_number}`,
+        subtitle: 'Setujui atau tolak resep sebelum pesanan diproses lebih lanjut.',
+        showLogout: true
+      }) %>
+      <%- include('../../partials/app-nav', { currentPath: '/prescriptions/review' }) %>
+
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
+      <% } %>
+
+      <section class="panel-grid panel-grid-wide">
+        <article class="panel-card">
+          <h2>Data Resep</h2>
+          <dl class="detail-list">
+            <div>
+              <dt>Pelanggan</dt>
+              <dd><%= prescription.customer_name %></dd>
+            </div>
+            <div>
+              <dt>Email</dt>
+              <dd><%= prescription.customer_email %></dd>
+            </div>
+            <div>
+              <dt>Dokter</dt>
+              <dd><%= prescription.doctor_name %></dd>
+            </div>
+            <div>
+              <dt>No. Resep</dt>
+              <dd><%= prescription.prescription_number || '-' %></dd>
+            </div>
+            <div>
+              <dt>Referensi Resep</dt>
+              <dd><a href="<%= prescription.image_path %>" target="_blank" rel="noreferrer"><%= prescription.image_path %></a></dd>
+            </div>
+            <div>
+              <dt>Total Pesanan</dt>
+              <dd><strong><%= prescription.total_amount_label %></strong></dd>
+            </div>
+          </dl>
+
+          <h3>Item Terkait</h3>
+          <div class="cart-list cart-list-compact">
+            <% prescription.items.forEach((item) => { %>
+              <article class="cart-item cart-item-compact">
+                <div class="cart-item__meta">
+                  <strong><%= item.medicine_name_snapshot %></strong>
+                  <span><%= item.medicine_sku_snapshot %> • qty <%= item.quantity %></span>
+                </div>
+                <div class="cart-item__price">
+                  <strong><%= item.total_price_label %></strong>
+                </div>
+              </article>
+            <% }) %>
+          </div>
+        </article>
+
+        <article class="panel-card">
+          <h2>Keputusan Review</h2>
+          <form action="/prescriptions/<%= prescription.id %>/review" method="post" class="auth-form">
+            <%- include('../../partials/csrf-field') %>
+            <label class="field">
+              <span>Keputusan</span>
+              <select name="decision">
+                <option value="">Pilih keputusan</option>
+                <option value="approved" <%= formValues.decision === 'approved' ? 'selected' : '' %>>Setujui Resep</option>
+                <option value="rejected" <%= formValues.decision === 'rejected' ? 'selected' : '' %>>Tolak Resep</option>
+              </select>
+              <% if (formErrors.decision) { %><small class="field-error"><%= formErrors.decision %></small><% } %>
+            </label>
+
+            <label class="field">
+              <span>Catatan Review</span>
+              <textarea name="reviewed_notes" rows="4" placeholder="Catatan apoteker untuk review resep"><%= formValues.reviewed_notes || '' %></textarea>
+              <% if (formErrors.reviewed_notes) { %><small class="field-error"><%= formErrors.reviewed_notes %></small><% } %>
+            </label>
+
+            <label class="field">
+              <span>Alasan Penolakan</span>
+              <textarea name="rejection_reason" rows="4" placeholder="Wajib diisi jika resep ditolak"><%= formValues.rejection_reason || '' %></textarea>
+              <% if (formErrors.rejection_reason) { %><small class="field-error"><%= formErrors.rejection_reason %></small><% } %>
+            </label>
+
+            <button type="submit" class="button-primary">Simpan Keputusan</button>
+          </form>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

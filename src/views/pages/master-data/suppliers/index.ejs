@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../../partials/app-header', {
+        eyebrow: 'Master Data',
+        heading: 'Supplier',
+        subtitle: 'MVP supplier untuk mendukung master data obat.',
+        showLogout: true
+      }) %>
+      <%- include('../../../partials/app-nav', { currentPath: '/suppliers' }) %>
+
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
+      <% } %>
+
+      <section class="panel-grid panel-grid-wide">
+        <article class="panel-card">
+          <h2>Tambah Supplier</h2>
+          <form action="/suppliers" method="post" class="auth-form">
+            <%- include('../../../partials/csrf-field') %>
+            <label class="field">
+              <span>Kode</span>
+              <input type="text" name="code" value="<%= formValues.code || '' %>" placeholder="contoh: SUP-FARMA-01" />
+              <% if (formErrors.code) { %><small class="field-error"><%= formErrors.code %></small><% } %>
+            </label>
+            <label class="field">
+              <span>Nama</span>
+              <input type="text" name="name" value="<%= formValues.name || '' %>" placeholder="contoh: PT Farma Sentosa" />
+              <% if (formErrors.name) { %><small class="field-error"><%= formErrors.name %></small><% } %>
+            </label>
+            <label class="field">
+              <span>Telepon</span>
+              <input type="text" name="phone" value="<%= formValues.phone || '' %>" placeholder="contoh: 081234567890" />
+              <% if (formErrors.phone) { %><small class="field-error"><%= formErrors.phone %></small><% } %>
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input type="email" name="email" value="<%= formValues.email || '' %>" placeholder="contoh: contact@supplier.co.id" />
+              <% if (formErrors.email) { %><small class="field-error"><%= formErrors.email %></small><% } %>
+            </label>
+            <label class="field">
+              <span>Alamat</span>
+              <textarea name="address" rows="4" placeholder="Alamat supplier"><%= formValues.address || '' %></textarea>
+            </label>
+            <button type="submit" class="button-primary">Simpan Supplier</button>
+          </form>
+        </article>
+
+        <article class="panel-card">
+          <h2>Daftar Supplier</h2>
+          <% if (!suppliers.length) { %>
+            <p class="subtitle">Belum ada supplier tersimpan.</p>
+          <% } else { %>
+            <div class="table-shell">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Kode</th>
+                    <th>Nama</th>
+                    <th>Kontak</th>
+                    <th>Alamat</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% suppliers.forEach((supplier) => { %>
+                    <tr>
+                      <td><strong><%= supplier.code %></strong></td>
+                      <td><%= supplier.name %></td>
+                      <td>
+                        <div><%= supplier.phone || '-' %></div>
+                        <div><%= supplier.email || '-' %></div>
+                      </td>
+                      <td><%= supplier.address || '-' %></td>
+                      <td><span class="status-pill <%= supplier.is_active ? 'status-active' : 'status-muted' %>"><%= supplier.is_active ? 'Aktif' : 'Nonaktif' %></span></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

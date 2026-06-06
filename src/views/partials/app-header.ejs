@@ -1,0 +1,16 @@
+<header class="app-header">
+  <div>
+    <p class="eyebrow"><%= eyebrow %></p>
+    <h1><%= heading %></h1>
+    <% if (subtitle) { %>
+      <p class="subtitle"><%= subtitle %></p>
+    <% } %>
+  </div>
+
+  <% if (showLogout) { %>
+    <form action="/logout" method="post">
+      <%- include('./csrf-field') %>
+      <button type="submit" class="button-secondary">Logout</button>
+    </form>
+  <% } %>
+</header>

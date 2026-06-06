@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../partials/app-header', {
+        eyebrow: 'Monitoring',
+        heading: 'Kesehatan Sistem',
+        subtitle: monitoringDescription,
+        showLogout: true
+      }) %>
+      <%- include('../../partials/app-nav', { currentPath }) %>
+
+      <section class="dashboard-metric-grid">
+        <% monitoringMetrics.forEach((metric) => { %>
+          <article class="dashboard-metric-card">
+            <p class="dashboard-metric-card__label"><%= metric.label %></p>
+            <p class="dashboard-metric-card__value"><%= metric.value %></p>
+          </article>
+        <% }) %>
+      </section>
+
+      <section class="dashboard-analytics-grid">
+        <article class="panel-card">
+          <div class="dashboard-section-header">
+            <div>
+              <h2><%= primaryPanelTitle %></h2>
+              <p class="subtitle"><%= primaryPanelDescription %></p>
+            </div>
+          </div>
+
+          <div class="dashboard-list">
+            <% primaryRows.forEach((row) => { %>
+              <article class="dashboard-list__item">
+                <div>
+                  <strong><%= row.label %></strong>
+                </div>
+                <span class="dashboard-pill dashboard-pill-<%= row.tone || 'neutral' %>"><%= row.value %></span>
+              </article>
+            <% }) %>
+          </div>
+        </article>
+
+        <article class="panel-card">
+          <div class="dashboard-section-header">
+            <div>
+              <h2><%= secondaryPanelTitle %></h2>
+              <p class="subtitle"><%= secondaryPanelDescription %></p>
+            </div>
+          </div>
+
+          <div class="dashboard-list">
+            <% secondaryRows.forEach((row) => { %>
+              <article class="dashboard-list__item">
+                <div>
+                  <strong><%= row.label %></strong>
+                </div>
+                <span class="dashboard-pill dashboard-pill-<%= row.tone || 'neutral' %>"><%= row.value %></span>
+              </article>
+            <% }) %>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

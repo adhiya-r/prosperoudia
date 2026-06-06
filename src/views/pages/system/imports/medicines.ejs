@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../../partials/app-header', {
+        eyebrow: 'Import',
+        heading: 'Import Obat',
+        subtitle: 'Unggah file CSV atau XLSX untuk membuat atau memperbarui katalog obat dan batch stok awal.',
+        showLogout: true
+      }) %>
+      <%- include('../../../partials/app-nav', { currentPath: '/system/imports/medicines' }) %>
+
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>" style="margin-top: 20px;"><%= flashMessage %></div>
+      <% } %>
+
+      <section class="panel-grid panel-grid-wide" style="margin-top: 20px;">
+        <article class="panel-card">
+          <h2>Upload File</h2>
+          <form action="/system/imports/medicines?csrfToken=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" class="auth-form">
+            <%- include('../../../partials/csrf-field') %>
+            <label class="field">
+              <span>File CSV / XLSX</span>
+              <input type="file" name="import_file" accept=".csv,.xlsx" />
+              <% if (formErrors.import_file) { %><small class="field-error"><%= formErrors.import_file %></small><% } %>
+            </label>
+
+            <div class="subtitle">
+              Header minimum: `sku`, `name`, `category`, `supplier`, `quantity`, `unit_price`.
+              Kolom opsional: `brand_name`, `minimum_stock_threshold`, `unit_cost`, `batch_number`, `expired_at`, `requires_prescription`, `dosage_form`, `strength`, `description`, `composition`, `dosage`, `side_effects`.
+            </div>
+
+            <button type="submit" class="button-primary">Proses Import</button>
+          </form>
+        </article>
+
+        <article class="panel-card">
+          <h2>Riwayat Import</h2>
+          <% if (!jobs.length) { %>
+            <p class="subtitle">Belum ada riwayat import.</p>
+          <% } else { %>
+            <div class="table-shell">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>File</th>
+                    <th>Status</th>
+                    <th>Baris</th>
+                    <th>Berhasil</th>
+                    <th>Gagal</th>
+                    <th>Oleh</th>
+                    <th>Dibuat</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% jobs.forEach((job) => { %>
+                    <tr>
+                      <td>
+                        <strong><%= job.file_name %></strong>
+                        <small class="subtitle"><%= job.file_type %></small>
+                      </td>
+                      <td><span class="status-pill <%= job.status === 'completed' ? 'status-active' : job.status === 'failed' ? 'status-muted' : '' %>"><%= job.status %></span></td>
+                      <td><%= job.total_rows ?? '-' %></td>
+                      <td><%= job.successful_rows ?? '-' %></td>
+                      <td><%= job.failed_rows ?? '-' %></td>
+                      <td><%= job.creator_name || '-' %></td>
+                      <td><%= job.created_at ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(job.created_at)) : '-' %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

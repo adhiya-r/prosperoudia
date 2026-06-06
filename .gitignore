@@ -141,3 +141,27 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local agent instructions
+AGENTS.md
+
+# Donor dashboard artifacts
+src/dashboard/
+src/dashboard/node_modules/
+src/dashboard/.git/
+src/dashboard/package-lock.json
+src/dashboard/package.json
+src/dashboard/knexfile.js
+src/dashboard/.env.example
+GITHUB_LINK.txt
+
+# Generated artifacts
+public/reports/*
+!public/reports/.gitkeep
+public/uploads/*
+!public/uploads/.gitkeep

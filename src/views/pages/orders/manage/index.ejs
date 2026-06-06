@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../../partials/app-header', {
+        eyebrow: 'Operasional',
+        heading: 'Manajemen Order',
+        subtitle: 'Pantau order online, status verifikasi resep, dan progres pembayaran.',
+        showLogout: true
+      }) %>
+      <%- include('../../../partials/app-nav', { currentPath: '/orders/manage' }) %>
+
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
+      <% } %>
+
+      <section class="panel-grid">
+        <article class="panel-card">
+          <h2>Daftar Order</h2>
+          <% if (!orders.length) { %>
+            <p class="subtitle">Belum ada order yang tercatat.</p>
+          <% } else { %>
+            <div class="table-shell">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>No. Order</th>
+                    <th>Pelanggan</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Pembayaran</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% orders.forEach((order) => { %>
+                    <tr>
+                      <td><strong><%= order.order_number %></strong></td>
+                      <td>
+                        <div><%= order.customer_name %></div>
+                        <small class="subtitle"><%= order.customer_phone %></small>
+                      </td>
+                      <td><%= order.total_amount_label %></td>
+                      <td><span class="status-pill <%= order.status === 'confirmed' || order.status === 'completed' ? 'status-active' : order.status === 'cancelled' ? 'status-muted' : 'status-warning' %>"><%= order.statusLabel %></span></td>
+                      <td><%= order.paymentStatusLabel %></td>
+                      <td><a href="/orders/manage/<%= order.id %>" class="button-outline">Buka</a></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

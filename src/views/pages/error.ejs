@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../partials/head') %>
+  </head>
+  <body class="error-page">
+    <main class="error-shell">
+      <section class="error-card">
+        <%- include('../partials/app-header', {
+          eyebrow: 'System Message',
+          heading: pageTitle,
+          subtitle: message,
+          showLogout: false
+        }) %>
+      </section>
+    </main>
+  </body>
+</html>

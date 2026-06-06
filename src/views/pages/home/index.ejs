@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="home-page storefront-page">
+    <header class="storefront-header">
+      <div class="storefront-header__main">
+        <a href="/" class="brand-logo" aria-label="Prosperoudia">
+          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" />
+        </a>
+
+        <div class="storefront-actions">
+          <div class="cart-preview">
+            <a href="/cart" class="cart-link cart-link-icon-only" aria-label="Lihat keranjang belanja">
+              <span class="cart-link__icon">🛒</span>
+              <% if (cartSummary.totalQuantity > 0) { %>
+                <span class="cart-link__count"><%= cartSummary.totalQuantity %></span>
+              <% } %>
+            </a>
+            <div class="cart-preview__panel">
+              <% if (cartSummary.isEmpty) { %>
+                <div class="cart-preview__empty">
+                  <strong>Keranjang belanjamu kosong</strong>
+                  <p>Yuk, isi dengan obat dan kebutuhan kesehatan harian.</p>
+                  <a href="/" class="button-outline button-outline-block">Mulai Belanja</a>
+                </div>
+              <% } else { %>
+                <div class="cart-preview__items">
+                  <% cartSummary.previewItems.forEach((item) => { %>
+                    <article class="cart-preview__item">
+                      <div>
+                        <strong><%= item.name %></strong>
+                        <span><%= item.quantity %> x <%= item.unit_price_label %></span>
+                      </div>
+                      <span><%= item.line_total_label %></span>
+                    </article>
+                  <% }) %>
+                </div>
+                <div class="cart-preview__footer">
+                  <strong>Total <%= cartSummary.totalAmountLabel %></strong>
+                  <a href="/cart">Lihat semua</a>
+                </div>
+              <% } %>
+            </div>
+          </div>
+          <% if (!currentUser) { %>
+            <button type="button" class="storefront-login" data-open-login>Masuk</button>
+            <a href="/register" class="button-ghost">Daftar</a>
+          <% } else { %>
+            <details class="profile-menu">
+              <summary class="profile-menu__trigger">
+                <span class="profile-avatar"><%= currentUser.full_name.charAt(0).toUpperCase() %></span>
+                <span class="profile-name"><%= currentUser.full_name %></span>
+              </summary>
+              <div class="profile-menu__panel">
+                <a href="/dashboard">Dashboard</a>
+                <form action="/logout" method="post">
+                  <%- include('../../partials/csrf-field') %>
+                  <button type="submit">Logout</button>
+                </form>
+              </div>
+            </details>
+          <% } %>
+        </div>
+      </div>
+    </header>
+
+    <main class="storefront-shell">
+      <nav class="storefront-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span>›</span>
+        <span>Toko Kesehatan</span>
+      </nav>
+
+      <section class="storefront-search-panel">
+        <form action="/" method="get" class="storefront-search" role="search">
+          <input
+            type="search"
+            name="q"
+            value="<%= searchQuery %>"
+            placeholder="Cari obat, vitamin, atau alat kesehatan"
+            aria-label="Cari produk"
+            autocomplete="off"
+            data-search-input
+          />
+          <input type="hidden" name="category" value="<%= activeCategoryFilter %>" data-active-category />
+          <button type="submit" class="storefront-search__button">Cari</button>
+        </form>
+        <div class="search-suggestions" data-search-suggestions hidden></div>
+      </section>
+
+      <section id="catalog" class="storefront-catalog">
+        <aside class="catalog-sidebar">
+          <div class="catalog-sidebar__card">
+            <h2><%= catalogSidebar.title %></h2>
+            <% catalogSidebar.sections.forEach((section) => { %>
+              <details class="catalog-sidebar__section" open>
+                <summary>
+                  <a href="/?category=<%= encodeURIComponent(section.categoryCode) %>#catalog"><%= section.heading %></a>
+                </summary>
+                <ul>
+                  <% section.items.forEach((item) => { %>
+                    <li>
+                      <% if (item.categoryCode) { %>
+                        <a href="/?category=<%= encodeURIComponent(item.categoryCode) %>#catalog"><%= item.label %></a>
+                      <% } else { %>
+                        <a href="/?q=<%= encodeURIComponent(item.search) %>#catalog"><%= item.label %></a>
+                      <% } %>
+                    </li>
+                  <% }) %>
+                </ul>
+              </details>
+            <% }) %>
+          </div>
+        </aside>
+
+        <div class="catalog-main">
+          <div class="catalog-main__chips" aria-label="Sorotan kategori">
+            <% categoryHighlights.forEach((category, index) => { %>
+              <a
+                href="/?category=<%= encodeURIComponent(category.code) %>#catalog"
+                class="catalog-chip <%= activeCategoryFilter === category.code || (!activeCategoryFilter && index === 0) ? 'is-active' : '' %>"
+              ><%= category.name %></a>
+            <% }) %>
+          </div>
+
+          <div class="catalog-product-grid">
+            <% featuredProducts.forEach((product) => { %>
+              <article class="catalog-product-card">
+                <div class="catalog-product-card__media">
+                  <% if (product.image_path) { %>
+                    <img src="<%= product.image_path %>" alt="<%= product.name %>" class="catalog-product-card__image" />
+                  <% } else { %>
+                    <div class="catalog-product-card__placeholder product-cover-<%= product.accent %>">
+                      <span class="product-cover__sku"><%= product.sku %></span>
+                    </div>
+                  <% } %>
+                </div>
+
+                <div class="catalog-product-card__body">
+                  <h3>
+                    <a href="/medicines/<%= product.id %>" class="product-link"><%= product.name %></a>
+                  </h3>
+                  <p class="catalog-product-card__unit"><%= product.dosage_form || 'Per item' %></p>
+                  <p class="catalog-product-card__price"><%= product.price_label %></p>
+                  <p class="catalog-product-card__meta">
+                    <span><%= product.category %></span>
+                    <% if (product.current_stock > 0) { %>
+                      <span>Stok <%= product.current_stock %></span>
+                    <% } %>
+                  </p>
+                </div>
+
+                <div class="catalog-product-card__actions">
+                  <form action="/cart/items" method="post" class="inline-form">
+                    <%- include('../../partials/csrf-field') %>
+                    <input type="hidden" name="medicine_id" value="<%= product.id %>" />
+                    <input type="hidden" name="quantity" value="1" />
+                    <input type="hidden" name="redirect_to" value="/" />
+                    <button type="submit" class="catalog-add-button">Tambah</button>
+                  </form>
+                </div>
+              </article>
+            <% }) %>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="modal-backdrop <%= isLoginOpen ? 'is-visible' : '' %>" data-login-modal>
+      <section class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+        <button type="button" class="modal-close" data-close-login aria-label="Tutup modal">×</button>
+
+        <div class="modal-copy">
+          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" class="auth-modal__logo" />
+          <p class="eyebrow">Masuk</p>
+          <h2 id="login-title">Masuk ke akunmu</h2>
+          <p class="subtitle">Gunakan email atau username yang sudah terdaftar.</p>
+        </div>
+
+        <% if (loginError) { %>
+          <div class="alert alert-danger"><%= loginError %></div>
+        <% } %>
+
+        <form action="/login" method="post" class="auth-form auth-form-compact">
+          <%- include('../../partials/csrf-field') %>
+          <input type="hidden" name="redirect_to" value="/" />
+
+          <label class="field">
+            <span>Email atau Username</span>
+            <input
+              type="text"
+              name="identifier"
+              value="<%= loginFormValues.identifier %>"
+              placeholder="contoh: admin atau email@contoh.com"
+              autocomplete="username"
+            />
+          </label>
+
+          <label class="field">
+            <span>Password</span>
+            <div class="password-field">
+              <input
+                type="password"
+                name="password"
+                placeholder="Masukkan password"
+                autocomplete="current-password"
+                data-password-input
+              />
+              <button type="button" class="password-toggle" data-password-toggle>Lihat</button>
+            </div>
+          </label>
+
+          <button type="submit" class="button-solid button-solid-block">Masuk</button>
+        </form>
+
+        <div class="auth-divider"><span>atau</span></div>
+
+        <div class="placeholder-stack">
+          <button type="button" class="button-outline button-outline-block" disabled>Masuk dengan Google</button>
+        </div>
+
+        <p class="auth-help">
+          Belum punya akun?
+          <a href="/register">Daftar sekarang</a>
+        </p>
+      </section>
+    </div>
+
+    <script src="/js/home.js"></script>
+  </body>
+</html>

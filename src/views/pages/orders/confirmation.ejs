@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="home-page storefront-page">
+    <header class="storefront-header">
+      <div class="storefront-header__main">
+        <a href="/" class="brand-logo" aria-label="Prosperoudia">
+          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" />
+        </a>
+
+        <div class="storefront-actions">
+          <div class="cart-preview">
+            <a href="/cart" class="cart-link cart-link-icon-only" aria-label="Lihat keranjang belanja">
+              <span class="cart-link__icon">🛒</span>
+              <% if (cartSummary.totalQuantity > 0) { %>
+                <span class="cart-link__count"><%= cartSummary.totalQuantity %></span>
+              <% } %>
+            </a>
+            <div class="cart-preview__panel">
+              <% if (cartSummary.isEmpty) { %>
+                <div class="cart-preview__empty">
+                  <strong>Keranjang belanjamu kosong</strong>
+                  <p>Yuk, isi dengan obat dan kebutuhan kesehatan harian.</p>
+                  <a href="/" class="button-outline button-outline-block">Mulai Belanja</a>
+                </div>
+              <% } else { %>
+                <div class="cart-preview__items">
+                  <% cartSummary.previewItems.forEach((item) => { %>
+                    <article class="cart-preview__item">
+                      <div>
+                        <strong><%= item.name %></strong>
+                        <span><%= item.quantity %> x <%= item.unit_price_label %></span>
+                      </div>
+                      <span><%= item.line_total_label %></span>
+                    </article>
+                  <% }) %>
+                </div>
+                <div class="cart-preview__footer">
+                  <strong>Total <%= cartSummary.totalAmountLabel %></strong>
+                  <a href="/cart">Lihat semua</a>
+                </div>
+              <% } %>
+            </div>
+          </div>
+          <details class="profile-menu">
+            <summary class="profile-menu__trigger">
+              <span class="profile-avatar"><%= currentUser.full_name.charAt(0).toUpperCase() %></span>
+              <span class="profile-name"><%= currentUser.full_name %></span>
+            </summary>
+            <div class="profile-menu__panel">
+              <a href="/dashboard">Dashboard</a>
+              <form action="/logout" method="post">
+                <%- include('../../partials/csrf-field') %>
+                <button type="submit">Logout</button>
+              </form>
+            </div>
+          </details>
+        </div>
+      </div>
+    </header>
+
+    <main class="storefront-shell">
+      <% if (flashMessage) { %>
+        <div class="alert <%= flashType === 'danger' ? 'alert-danger' : 'alert-info' %>"><%= flashMessage %></div>
+      <% } %>
+
+      <nav class="storefront-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span>›</span>
+        <span>Konfirmasi Pesanan</span>
+      </nav>
+
+      <section class="cart-layout cart-layout-storefront">
+        <article class="cart-panel">
+          <div class="cart-panel__header">
+            <div>
+              <p class="eyebrow">Konfirmasi</p>
+              <h1>Pesanan <%= order.order_number %></h1>
+            </div>
+            <a href="/" class="button-outline">Belanja lagi</a>
+          </div>
+
+          <p class="subtitle">
+            Status order: <strong><%= order.statusLabel %></strong> •
+            Status pembayaran: <strong><%= order.payment_status %></strong>
+          </p>
+
+          <div class="cart-list cart-list-storefront">
+            <% order.items.forEach((item) => { %>
+              <article class="cart-item cart-item-storefront">
+                <div class="cart-item-storefront__main">
+                  <div class="cart-item-storefront__thumb">
+                    <span><%= item.medicine_sku_snapshot %></span>
+                  </div>
+                  <div class="cart-item-storefront__content">
+                    <strong><%= item.medicine_name_snapshot %></strong>
+                    <span><%= item.requires_prescription ? 'Memerlukan resep' : 'Tanpa resep' %></span>
+                  </div>
+                </div>
+
+                <div class="cart-item-storefront__side">
+                  <div class="cart-item__price">
+                    <strong><%= item.totalPriceLabel %></strong>
+                    <span><%= item.unitPriceLabel %> x <%= item.quantity %></span>
+                  </div>
+                </div>
+              </article>
+            <% }) %>
+          </div>
+        </article>
+
+        <aside class="cart-summary-card">
+          <h2>Ringkasan pesanan</h2>
+          <dl class="detail-list">
+            <div>
+              <dt>Pelanggan</dt>
+              <dd><%= order.customer_name %></dd>
+            </div>
+            <div>
+              <dt>Email</dt>
+              <dd><%= order.customer_email %></dd>
+            </div>
+            <div>
+              <dt>HP</dt>
+              <dd><%= order.customer_phone %></dd>
+            </div>
+            <div>
+              <dt>Pembayaran</dt>
+              <dd><%= order.paymentMethodLabel %></dd>
+            </div>
+            <div>
+              <dt>Pengambilan</dt>
+              <dd><%= order.fulfillmentMethodLabel %></dd>
+            </div>
+            <div>
+              <dt>Total</dt>
+              <dd><strong><%= order.totalAmountLabel %></strong></dd>
+            </div>
+            <% if (order.prescription) { %>
+              <div>
+                <dt>Status resep</dt>
+                <dd><%= order.prescription.statusLabel %></dd>
+              </div>
+              <div>
+                <dt>Dokter</dt>
+                <dd><%= order.prescription.doctor_name %></dd>
+              </div>
+              <div>
+                <dt>File resep</dt>
+                <dd><a href="<%= order.prescription.image_path %>" target="_blank" rel="noreferrer">Buka resep</a></dd>
+              </div>
+            <% } %>
+          </dl>
+
+          <% if (order.prescription) { %>
+            <div class="alert <%= order.prescription.status === 'rejected' ? 'alert-danger' : 'alert-info' %>">
+              <% if (order.prescription.status === 'pending') { %>
+                Resep sedang menunggu review apoteker.
+              <% } else if (order.prescription.status === 'approved') { %>
+                Resep sudah disetujui apoteker.
+              <% } else { %>
+                Resep ditolak. <%= order.prescription.rejection_reason || 'Silakan hubungi apotek untuk klarifikasi.' %>
+              <% } %>
+            </div>
+          <% } %>
+        </aside>
+      </section>
+    </main>
+  </body>
+</html>

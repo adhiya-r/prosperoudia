@@ -1,0 +1,18 @@
+<nav class="app-nav">
+  <a href="/dashboard" class="nav-link <%= currentPath === '/dashboard' ? 'is-active' : '' %>">Dashboard</a>
+  <% if (currentUser && ['Admin'].includes(currentUser.primaryRole?.name || currentUser.role)) { %>
+    <a href="/system/monitoring" class="nav-link <%= currentPath === '/system/monitoring' ? 'is-active' : '' %>">Monitoring</a>
+    <a href="/system/users" class="nav-link <%= currentPath === '/system/users' ? 'is-active' : '' %>">Akun</a>
+    <a href="/system/imports/medicines" class="nav-link <%= currentPath === '/system/imports/medicines' ? 'is-active' : '' %>">Import</a>
+    <a href="/system/reports" class="nav-link <%= currentPath === '/system/reports' ? 'is-active' : '' %>">Reports</a>
+  <% } %>
+  <% if (currentUser && ['Admin', 'Apoteker', 'Kasir'].includes(currentUser.primaryRole?.name || currentUser.role)) { %>
+    <a href="/orders/manage" class="nav-link <%= currentPath === '/orders/manage' ? 'is-active' : '' %>">Order</a>
+  <% } %>
+  <a href="/categories" class="nav-link <%= currentPath === '/categories' ? 'is-active' : '' %>">Kategori</a>
+  <a href="/suppliers" class="nav-link <%= currentPath === '/suppliers' ? 'is-active' : '' %>">Supplier</a>
+  <a href="/medicines" class="nav-link <%= currentPath === '/medicines' ? 'is-active' : '' %>">Obat</a>
+  <% if (currentUser && ['Admin', 'Apoteker'].includes(currentUser.primaryRole?.name || currentUser.role)) { %>
+    <a href="/prescriptions/review" class="nav-link <%= currentPath === '/prescriptions/review' ? 'is-active' : '' %>">Verifikasi Resep</a>
+  <% } %>
+</nav>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="register-page storefront-page">
+    <header class="storefront-header">
+      <div class="storefront-header__main">
+        <a href="/" class="brand-logo" aria-label="Prosperoudia">
+          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" />
+        </a>
+      </div>
+    </header>
+
+    <main class="register-shell register-shell-single">
+      <a href="/" class="register-back-link">← Kembali</a>
+      <section class="register-panel register-panel-refined">
+          <div class="register-panel__header">
+            <% if (mode === 'login') { %>
+              <h2>Masuk</h2>
+              <p class="subtitle">
+                Belum punya akun?
+                <a href="/register">Daftar akun</a>
+              </p>
+            <% } else { %>
+              <h2>Daftar akun</h2>
+              <p class="subtitle">
+                Sudah punya akun?
+                <a href="/register?mode=login">Masuk</a>
+              </p>
+            <% } %>
+          </div>
+
+          <div class="placeholder-stack register-provider-stack">
+            <button type="button" class="button-outline button-outline-block" disabled><%= mode === 'login' ? 'Masuk dengan Google' : 'Daftar dengan Google' %></button>
+          </div>
+
+          <div class="auth-divider"><span><%= mode === 'login' ? 'atau masuk dengan email' : 'atau daftar dengan email' %></span></div>
+
+          <% if (mode === 'login') { %>
+            <form class="auth-form auth-form-compact" action="/login" method="post">
+              <%- include('../../partials/csrf-field') %>
+              <input type="hidden" name="redirect_to" value="/" />
+              <input type="hidden" name="auth_surface" value="register-page" />
+              <% if (loginError) { %>
+                <div class="alert alert-danger"><%= loginError %></div>
+              <% } %>
+              <label class="field">
+                <span>Email atau Username</span>
+                <input type="text" name="identifier" value="<%= loginFormValues.identifier || '' %>" placeholder="email@contoh.com atau username" />
+              </label>
+              <label class="field">
+                <span>Password</span>
+                <input type="password" name="password" placeholder="Masukkan password" />
+              </label>
+              <button type="submit" class="button-solid button-solid-block">Masuk</button>
+            </form>
+          <% } else { %>
+            <form class="auth-form auth-form-compact" action="/register" method="post">
+              <%- include('../../partials/csrf-field') %>
+              <% if (flashMessage) { %>
+                <div class="alert alert-danger"><%= flashMessage %></div>
+              <% } %>
+              <label class="field">
+                <span>Nama Lengkap</span>
+                <input type="text" name="full_name" value="<%= formValues.full_name || '' %>" placeholder="Rina Putri" />
+                <% if (formErrors.full_name) { %><small class="field-error"><%= formErrors.full_name %></small><% } %>
+              </label>
+              <label class="field">
+                <span>Username</span>
+                <input type="text" name="username" value="<%= formValues.username || '' %>" placeholder="rinaputri" />
+                <% if (formErrors.username) { %><small class="field-error"><%= formErrors.username %></small><% } %>
+              </label>
+              <label class="field">
+                <span>Email</span>
+                <input type="email" name="email" value="<%= formValues.email || '' %>" placeholder="email@contoh.com" />
+                <% if (formErrors.email) { %><small class="field-error"><%= formErrors.email %></small><% } %>
+              </label>
+              <label class="field">
+                <span>Nomor HP</span>
+                <input type="text" name="phone" value="<%= formValues.phone || '' %>" placeholder="081234567890" />
+                <% if (formErrors.phone) { %><small class="field-error"><%= formErrors.phone %></small><% } %>
+              </label>
+              <label class="field">
+                <span>Password</span>
+                <input type="password" name="password" placeholder="Minimal 8 karakter, ada huruf besar, kecil, angka, simbol" />
+                <% if (formErrors.password) { %><small class="field-error"><%= formErrors.password %></small><% } %>
+              </label>
+              <label class="field">
+                <span>Konfirmasi Password</span>
+                <input type="password" name="password_confirmation" placeholder="Ulangi password yang sama" />
+                <% if (formErrors.password_confirmation) { %><small class="field-error"><%= formErrors.password_confirmation %></small><% } %>
+              </label>
+
+              <button type="submit" class="button-solid button-solid-block">Daftar</button>
+            </form>
+          <% } %>
+      </section>
+    </main>
+  </body>
+</html>

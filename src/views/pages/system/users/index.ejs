@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../../partials/head') %>
+  </head>
+  <body class="app-page">
+    <main class="dashboard-shell">
+      <%- include('../../../partials/app-header', {
+        eyebrow: 'System',
+        heading: 'Manajemen Akun',
+        subtitle: 'Daftar akun internal dan pelanggan yang sudah tersimpan di sistem.',
+        showLogout: true
+      }) %>
+      <%- include('../../../partials/app-nav', { currentPath: '/system/users' }) %>
+
+      <section class="panel-card" style="margin-top: 20px;">
+        <h2>Daftar Akun</h2>
+        <% if (!users.length) { %>
+          <p class="subtitle">Belum ada akun yang tersimpan.</p>
+        <% } else { %>
+          <div class="table-shell">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Telepon</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Last Login</th>
+                  <th>Dibuat</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% users.forEach((user) => { %>
+                  <tr>
+                    <td><strong><%= user.full_name %></strong></td>
+                    <td><%= user.username %></td>
+                    <td><%= user.email %></td>
+                    <td><%= user.phone || '-' %></td>
+                    <td><%= user.role_label %></td>
+                    <td><span class="status-pill <%= user.is_active ? 'status-active' : 'status-muted' %>"><%= user.status_label %></span></td>
+                    <td><%= user.last_login_label %></td>
+                    <td><%= user.created_at_label %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <%- include('../../partials/head') %>
+  </head>
+  <body class="home-page storefront-page">
+    <header class="storefront-header">
+      <div class="storefront-header__main">
+        <a href="/" class="brand-logo" aria-label="Prosperoudia">
+          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" />
+        </a>
+
+        <div class="storefront-actions">
+          <div class="cart-preview">
+            <a href="/cart" class="cart-link cart-link-icon-only" aria-label="Lihat keranjang belanja">
+              <span class="cart-link__icon">🛒</span>
+              <% if (cartSummary.totalQuantity > 0) { %>
+                <span class="cart-link__count"><%= cartSummary.totalQuantity %></span>
+              <% } %>
+            </a>
+            <div class="cart-preview__panel">
+              <% if (cartSummary.isEmpty) { %>
+                <div class="cart-preview__empty">
+                  <strong>Keranjang belanjamu kosong</strong>
+                  <p>Yuk, isi dengan obat dan kebutuhan kesehatan harian.</p>
+                  <a href="/" class="button-outline button-outline-block">Mulai Belanja</a>
+                </div>
+              <% } else { %>
+                <div class="cart-preview__items">
+                  <% cartSummary.previewItems.forEach((item) => { %>
+                    <article class="cart-preview__item">
+                      <div>
+                        <strong><%= item.name %></strong>
+                        <span><%= item.quantity %> x <%= item.unit_price_label %></span>
+                      </div>
+                      <span><%= item.line_total_label %></span>
+                    </article>
+                  <% }) %>
+                </div>
+                <div class="cart-preview__footer">
+                  <strong>Total <%= cartSummary.totalAmountLabel %></strong>
+                  <a href="/cart">Lihat semua</a>
+                </div>
+              <% } %>
+            </div>
+          </div>
+          <% if (!currentUser) { %>
+            <button type="button" class="storefront-login" data-open-login>Masuk</button>
+            <a href="/register" class="button-ghost">Daftar</a>
+          <% } else { %>
+            <details class="profile-menu">
+              <summary class="profile-menu__trigger">
+                <span class="profile-avatar"><%= currentUser.full_name.charAt(0).toUpperCase() %></span>
+                <span class="profile-name"><%= currentUser.full_name %></span>
+              </summary>
+              <div class="profile-menu__panel">
+                <a href="/dashboard">Dashboard</a>
+                <form action="/logout" method="post">
+                  <%- include('../../partials/csrf-field') %>
+                  <button type="submit">Logout</button>
+                </form>
+              </div>
+            </details>
+          <% } %>
+        </div>
+      </div>
+    </header>
+
+    <main class="storefront-shell">
+      <nav class="storefront-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span>›</span>
+        <a href="/#catalog">Katalog</a>
+        <span>›</span>
+        <span><%= medicine.category_name %></span>
+      </nav>
+
+      <section class="medicine-detail storefront-detail">
+        <div class="medicine-detail__hero">
+          <% if (medicine.image_path) { %>
+            <div class="medicine-detail__art medicine-detail__art-image">
+              <img src="<%= medicine.image_path %>" alt="<%= medicine.name %>" class="medicine-detail__image" />
+            </div>
+          <% } else { %>
+            <div class="medicine-detail__art product-cover-<%= medicine.requires_prescription ? 'violet' : 'mint' %>">
+              <span class="product-cover__sku"><%= medicine.sku %></span>
+            </div>
+          <% } %>
+          <div class="medicine-detail__summary">
+            <p class="eyebrow"><%= medicine.category_name %></p>
+            <h1><%= medicine.name %></h1>
+            <p class="subtitle"><%= medicine.brand_name || 'Produk farmasi' %></p>
+            <p class="subtitle">
+              <%= medicine.requires_prescription ? 'Memerlukan resep dokter' : 'Bisa dibeli tanpa resep' %>
+              • Stok tersedia <strong><%= medicine.current_stock %></strong>
+            </p>
+            <p class="medicine-detail__price"><%= medicine.price_label %></p>
+            <div class="medicine-detail__actions">
+              <form action="/cart/items" method="post" class="inline-form">
+                <%- include('../../partials/csrf-field') %>
+                <input type="hidden" name="medicine_id" value="<%= medicine.id %>" />
+                <input type="hidden" name="quantity" value="1" />
+                <input type="hidden" name="redirect_to" value="/medicines/<%= medicine.id %>" />
+                <button type="submit" class="button-solid">Tambah</button>
+              </form>
+              <a href="/cart" class="button-outline">Lihat Keranjang</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <article class="panel-card">
+            <h2>Deskripsi</h2>
+            <p class="subtitle"><%= medicine.description || 'Deskripsi produk belum ditambahkan.' %></p>
+          </article>
+
+          <article class="panel-card">
+            <h2>Informasi Produk</h2>
+            <dl class="detail-list">
+              <div>
+                <dt>Komposisi</dt>
+                <dd><%= medicine.composition || '-' %></dd>
+              </div>
+              <div>
+                <dt>Dosis</dt>
+                <dd><%= medicine.dosage || '-' %></dd>
+              </div>
+              <div>
+                <dt>Bentuk Sediaan</dt>
+                <dd><%= medicine.dosage_form || '-' %></dd>
+              </div>
+              <div>
+                <dt>Kekuatan</dt>
+                <dd><%= medicine.strength || '-' %></dd>
+              </div>
+              <div>
+                <dt>Efek Samping</dt>
+                <dd><%= medicine.side_effects || '-' %></dd>
+              </div>
+              <div>
+                <dt>Supplier</dt>
+                <dd><%= medicine.supplier_name || '-' %></dd>
+              </div>
+            </dl>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" data-login-modal>
+      <section class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+        <button type="button" class="modal-close" data-close-login aria-label="Tutup modal">×</button>
+        <div class="modal-copy">
+          <img src="/images/logo-panjang.jpeg" alt="Prosperoudia" class="auth-modal__logo" />
+          <p class="eyebrow">Masuk</p>
+          <h2 id="login-title">Masuk ke akunmu</h2>
+          <p class="subtitle">Gunakan email atau username yang sudah terdaftar.</p>
+        </div>
+        <form action="/login" method="post" class="auth-form auth-form-compact">
+          <%- include('../../partials/csrf-field') %>
+          <input type="hidden" name="redirect_to" value="/medicines/<%= medicine.id %>" />
+
+          <label class="field">
+            <span>Email atau Username</span>
+            <input type="text" name="identifier" placeholder="contoh: admin atau email@contoh.com" autocomplete="username" />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <div class="password-field">
+              <input type="password" name="password" placeholder="Masukkan password" autocomplete="current-password" data-password-input />
+              <button type="button" class="password-toggle" data-password-toggle>Lihat</button>
+            </div>
+          </label>
+          <button type="submit" class="button-solid button-solid-block">Masuk</button>
+        </form>
+        <div class="auth-divider"><span>atau</span></div>
+        <div class="placeholder-stack">
+          <button type="button" class="button-outline button-outline-block" disabled>Masuk dengan Google</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="/js/home.js"></script>
+  </body>
+</html>
